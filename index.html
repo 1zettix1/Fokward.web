@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FOKWARD.STW</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brown-deep: #1a0e07;
+      --brown-dark: #2c1a0e;
+      --brown-mid: #3d2510;
+      --brown-accent: #5c3820;
+      --orange: #e07b2a;
+      --orange-light: #f0a050;
+      --cream: #f5efe8;
+      --white: #ffffff;
+      --gray: #a89080;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--cream);
+      color: var(--brown-deep);
+      font-family: 'Barlow', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* TICKER */
+    .ticker-wrap {
+      background: var(--brown-deep);
+      color: var(--cream);
+      padding: 8px 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .ticker-track {
+      display: inline-block;
+      animation: ticker 25s linear infinite;
+    }
+    .ticker-track span {
+      display: inline-block;
+      padding: 0 40px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .ticker-track span::before {
+      content: '◆';
+      margin-right: 40px;
+      color: var(--orange);
+    }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* HEADER */
+    header {
+      background: var(--brown-dark);
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+    }
+    .header-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 38px;
+      color: var(--white);
+      letter-spacing: 4px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .logo span { color: var(--orange); }
+
+    nav { display: flex; gap: 32px; align-items: center; }
+    nav a {
+      color: var(--cream);
+      text-decoration: none;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--orange); }
+
+    .header-right { display: flex; align-items: center; gap: 20px; }
+    .cart-btn {
+      background: var(--orange);
+      border: none;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 2px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .cart-btn:hover { background: var(--orange-light); }
+    .cart-count {
+      background: var(--brown-deep);
+      color: white;
+      border-radius: 50%;
+      width: 20px; height: 20px;
+      font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* PAGES */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* HERO */
+    .hero {
+      background: var(--brown-dark);
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: 'FW';
+      position: absolute;
+      right: -20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 400px;
+      color: rgba(255,255,255,0.03);
+      line-height: 1;
+      pointer-events: none;
+    }
+    .hero-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 80px 40px;
+      position: relative;
+    }
+    .hero-label {
+      font-size: 12px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--orange);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(60px, 10vw, 110px);
+      color: var(--white);
+      line-height: 0.9;
+      margin-bottom: 24px;
+    }
+    .hero h1 em {
+      color: var(--orange);
+      font-style: normal;
+    }
+    .hero p {
+      color: var(--gray);
+      font-size: 16px;
+      max-width: 420px;
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+    .btn-primary {
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 14px 36px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--orange-light); transform: translateY(-1px); }
+
+    /* MARQUEE BAR */
+    .marquee-bar {
+      background: var(--brown-mid);
+      padding: 12px 0;
+      overflow: hidden;
+    }
+    .marquee-inner {
+      display: flex;
+      gap: 0;
+      animation: marquee 20s linear infinite;
+      white-space: nowrap;
+    }
+    .marquee-inner span {
+      padding: 0 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange);
+      font-weight: 700;
+    }
+    .marquee-inner span.sep { color: var(--brown-accent); }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* SECTION */
+    .section {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px;
+      color: var(--brown-deep);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .section-sub {
+      color: var(--gray);
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+
+    /* PRODUCT GRID */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .product-card {
+      background: var(--brown-dark);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+    .product-img {
+      width: 100%;
+      aspect-ratio: 4/5;
+      object-fit: cover;
+      background: var(--brown-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 60px;
+      color: rgba(255,255,255,0.1);
+    }
+    .product-img img { width: 100%; height: 100%; object-fit: cover; }
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: var(--orange);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 8px;
+    }
+    .product-info { padding: 16px; }
+    .product-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .product-category {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 10px;
+    }
+    .product-price {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .price-now {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      color: var(--orange);
+    }
+    .price-old {
+      font-size: 14px;
+      color: var(--gray);
+      text-decoration: line-through;
+    }
+
+    /* PRODUCT DETAIL */
+    .product-detail { display: none; }
+    .product-detail.active { display: block; }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+    }
+    @media(max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+    .detail-img {
+      width: 100%;
+      aspect-ratio: 4/5;
+      background: var(--brown-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 80px;
+      color: rgba(255,255,255,0.1);
+    }
+    .detail-img img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-info { padding: 20px 0; }
+    .detail-brand { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); font-weight: 700; margin-bottom: 8px; }
+    .detail-name { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--brown-deep); line-height: 1; margin-bottom: 16px; }
+    .detail-price { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--orange); margin-bottom: 24px; }
+    .detail-price .old { font-size: 22px; color: var(--gray); text-decoration: line-through; margin-left: 12px; }
+
+    .selector-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; color: var(--brown-deep); margin-bottom: 10px; }
+    .color-options, .size-options { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+    .color-btn {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .color-btn.active { border-color: var(--orange); }
+    .size-btn {
+      padding: 8px 16px;
+      border: 2px solid var(--brown-accent);
+      background: none;
+      color: var(--brown-deep);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .size-btn:hover, .size-btn.active { background: var(--brown-dark); color: var(--white); border-color: var(--brown-dark); }
+
+    .add-cart-btn {
+      width: 100%;
+      background: var(--brown-dark);
+      color: var(--white);
+      border: none;
+      padding: 16px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 12px;
+    }
+    .add-cart-btn:hover { background: var(--brown-mid); }
+    .buy-now-btn {
+      width: 100%;
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 16px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .buy-now-btn:hover { background: var(--orange-light); }
+
+    .shipping-info { margin-top: 24px; padding: 16px; background: var(--cream); border-left: 3px solid var(--orange); }
+    .shipping-info p { font-size: 13px; color: var(--brown-accent); line-height: 1.6; }
+
+    /* CART SIDEBAR */
+    .cart-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .cart-overlay.open { opacity: 1; pointer-events: all; }
+    .cart-sidebar {
+      position: fixed;
+      right: -420px;
+      top: 0; bottom: 0;
+      width: 420px;
+      max-width: 100vw;
+      background: var(--brown-dark);
+      z-index: 201;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .cart-sidebar.open { right: 0; }
+    .cart-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--brown-accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cart-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--white); letter-spacing: 2px; }
+    .close-btn { background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; }
+    .cart-items { flex: 1; overflow-y: auto; padding: 20px; }
+    .cart-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--brown-accent);
+    }
+    .cart-item-img {
+      width: 70px; height: 70px;
+      background: var(--brown-mid);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      color: rgba(255,255,255,0.3);
+    }
+    .cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
+    .cart-item-details { flex: 1; }
+    .cart-item-name { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--white); text-transform: uppercase; }
+    .cart-item-meta { font-size: 12px; color: var(--gray); margin: 4px 0; }
+    .cart-item-price { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--orange); }
+    .cart-item-remove { background: none; border: none; color: var(--gray); cursor: pointer; font-size: 18px; align-self: flex-start; }
+
+    .cart-footer { padding: 20px; border-top: 1px solid var(--brown-accent); }
+    .cart-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .cart-total span { color: var(--gray); font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+    .cart-total strong { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--white); }
+    .checkout-btn {
+      width: 100%;
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 16px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .checkout-btn:hover { background: var(--orange-light); }
+    .empty-cart { text-align: center; padding: 60px 20px; color: var(--gray); }
+    .empty-cart p { font-family: 'Bebas Neue', sans-serif; font-size: 24px; }
+
+    /* CHECKOUT PAGE */
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 40px;
+      align-items: start;
+    }
+    @media(max-width: 900px) { .checkout-layout { grid-template-columns: 1fr; } }
+
+    .form-section { background: white; padding: 32px; margin-bottom: 20px; }
+    .form-section h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 2px;
+      color: var(--brown-deep);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--brown-mid);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: var(--brown-accent); margin-bottom: 6px; }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0d5cc;
+      background: #faf7f4;
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px;
+      color: var(--brown-deep);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--orange); }
+
+    .shipping-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .shipping-option {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border: 2px solid #e0d5cc;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .shipping-option:hover, .shipping-option.selected { border-color: var(--orange); }
+    .shipping-option input[type=radio] { accent-color: var(--orange); width: 18px; height: 18px; }
+    .shipping-option-info { flex: 1; }
+    .shipping-option-name { font-weight: 700; font-size: 14px; color: var(--brown-deep); }
+    .shipping-option-desc { font-size: 12px; color: var(--gray); margin-top: 2px; }
+    .shipping-option-price { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--orange); }
+
+    .order-summary { background: var(--brown-dark); padding: 28px; position: sticky; top: 90px; }
+    .order-summary h3 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--white); letter-spacing: 2px; margin-bottom: 20px; }
+    .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--brown-accent); }
+    .summary-item span { color: var(--gray); font-size: 14px; }
+    .summary-item strong { color: var(--white); font-size: 14px; }
+    .summary-total { display: flex; justify-content: space-between; padding-top: 16px; margin-top: 4px; }
+    .summary-total span { color: var(--cream); font-weight: 700; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
+    .summary-total strong { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--orange); }
+
+    .pay-btn {
+      width: 100%;
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 18px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+    .pay-btn:hover { background: var(--orange-light); }
+    .pay-btn:disabled { background: var(--brown-accent); cursor: not-allowed; }
+
+    .mp-logo { display: flex; align-items: center; gap: 8px; margin-top: 12px; justify-content: center; }
+    .mp-logo span { font-size: 12px; color: var(--gray); }
+
+    /* FOOTER */
+    footer {
+      background: var(--brown-deep);
+      padding: 60px 40px 30px;
+      margin-top: 80px;
+    }
+    .footer-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    @media(max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    .footer-brand .logo { display: block; margin-bottom: 12px; font-size: 42px; }
+    .footer-brand p { color: var(--gray); font-size: 13px; line-height: 1.6; }
+    .footer-col h4 { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); font-weight: 700; margin-bottom: 16px; }
+    .footer-col a { display: block; color: var(--gray); text-decoration: none; font-size: 13px; margin-bottom: 8px; cursor: pointer; }
+    .footer-col a:hover { color: var(--cream); }
+    .footer-bottom { border-top: 1px solid var(--brown-accent); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; }
+    .footer-bottom p { color: var(--gray); font-size: 12px; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--brown-deep);
+      color: white;
+      padding: 14px 28px;
+      border-left: 4px solid var(--orange);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      letter-spacing: 1px;
+      z-index: 300;
+      transition: transform 0.3s ease;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* CATALOG PAGE */
+    .catalog-header {
+      background: var(--brown-dark);
+      padding: 60px 40px;
+    }
+    .catalog-header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 64px;
+      color: var(--white);
+      letter-spacing: 3px;
+    }
+    .catalog-header p { color: var(--gray); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
+
+    .filter-bar {
+      background: white;
+      padding: 16px 40px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 2px solid #e0d5cc;
+    }
+    .filter-btn {
+      padding: 8px 20px;
+      border: 2px solid var(--brown-accent);
+      background: none;
+      color: var(--brown-deep);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active { background: var(--brown-dark); color: white; border-color: var(--brown-dark); }
+
+    /* SUCCESS PAGE */
+    .success-page {
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 40px;
+    }
+    .success-icon { font-size: 80px; margin-bottom: 24px; }
+    .success-page h2 { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--brown-deep); margin-bottom: 12px; }
+    .success-page p { color: var(--gray); font-size: 16px; line-height: 1.6; max-width: 500px; margin: 0 auto 32px; }
+
+    /* CONTACT */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+    }
+    @media(max-width: 768px) { .contact-grid { grid-template-columns: 1fr; } }
+    .contact-info h2 { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--brown-deep); margin-bottom: 20px; }
+    .contact-info p { color: var(--gray); line-height: 1.7; margin-bottom: 16px; }
+    .contact-link { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; text-decoration: none; color: var(--brown-deep); font-weight: 600; }
+    .contact-link:hover { color: var(--orange); }
+
+    .size-guide-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .size-guide-table th { background: var(--brown-dark); color: white; padding: 12px; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px; }
+    .size-guide-table td { padding: 12px; border-bottom: 1px solid #e0d5cc; text-align: center; font-size: 14px; }
+    .size-guide-table tr:nth-child(even) { background: #f5efe8; }
+
+    /* LOADING */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: var(--brown-deep);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      transition: opacity 0.5s;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .loading-logo { font-family: 'Bebas Neue', sans-serif; font-size: 72px; color: white; letter-spacing: 6px; }
+    .loading-logo span { color: var(--orange); }
+    .loading-bar { width: 200px; height: 2px; background: var(--brown-accent); overflow: hidden; }
+    .loading-bar-inner { height: 100%; background: var(--orange); animation: load 1.2s ease forwards; }
+    @keyframes load { 0% { width: 0%; } 100% { width: 100%; } }
+
+    @media(max-width: 768px) {
+      header { padding: 0 20px; }
+      .section { padding: 40px 20px; }
+      .hero-inner { padding: 60px 20px; }
+      .catalog-header { padding: 40px 20px; }
+      .filter-bar { padding: 16px 20px; }
+      nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo">FO<span>K</span>WARD</div>
+  <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CART OVERLAY -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <h2>Tu carrito</h2>
+    <button class="close-btn" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer" id="cartFooter"></div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track">
+    <span>Envíos a todo el país</span>
+    <span>Seguinos en @fokward.stw</span>
+    <span>Seguinos en @fokward.sbl</span>
+    <span>Nuevas colecciones disponibles</span>
+    <span>Envíos a todo el país</span>
+    <span>Seguinos en @fokward.stw</span>
+    <span>Seguinos en @fokward.sbl</span>
+    <span>Nuevas colecciones disponibles</span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a class="logo" onclick="showPage('home')">FO<span>K</span>WARD</a>
+    <nav>
+      <a onclick="showPage('home')">Inicio</a>
+      <a onclick="showPage('catalog')">Productos</a>
+      <a onclick="showPage('contact')">Contacto</a>
+      <a onclick="showPage('size-guide')">Guía de talles</a>
+    </nav>
+    <div class="header-right">
+      <button class="cart-btn" onclick="openCart()">
+        🛒 Carrito <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HOME PAGE ===== -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-label">Nueva colección 2026</div>
+      <h1>FOKWARD<br><em>STW</em></h1>
+      <p>Ropa urbana con identidad propia. Cada prenda es una declaración.</p>
+      <button class="btn-primary" onclick="showPage('catalog')">Ver colección →</button>
+    </div>
+  </div>
+
+  <div class="marquee-bar">
+    <div class="marquee-inner">
+      <span>FOKWARD.STW</span><span class="sep">///</span>
+      <span>FOKWARD.SBL</span><span class="sep">///</span>
+      <span>ENVÍOS A TODO EL PAÍS</span><span class="sep">///</span>
+      <span>NUEVA COLECCIÓN</span><span class="sep">///</span>
+      <span>FOKWARD.STW</span><span class="sep">///</span>
+      <span>FOKWARD.SBL</span><span class="sep">///</span>
+      <span>ENVÍOS A TODO EL PAÍS</span><span class="sep">///</span>
+      <span>NUEVA COLECCIÓN</span><span class="sep">///</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Destacados</div>
+    <div class="section-sub">Los más elegidos de la temporada</div>
+    <div class="product-grid" id="featuredGrid"></div>
+  </div>
+
+  <div class="section" style="background: var(--brown-dark); max-width: 100%; padding: 60px 40px;">
+    <div style="max-width:1300px; margin: 0 auto;">
+      <div class="section-title" style="color: white;">FOKWARD.SBL</div>
+      <div class="section-sub">Accesorios y personalización</div>
+      <div class="product-grid" id="sblGrid"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; text-align: center;">
+      <div style="background: var(--brown-dark); padding: 40px 20px;">
+        <div style="font-size: 40px; margin-bottom: 12px;">📦</div>
+        <div style="font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: white; letter-spacing: 2px;">Envíos a todo el país</div>
+        <div style="font-size: 13px; color: var(--gray); margin-top: 6px;">OCA, Andreani y Correo Argentino</div>
+      </div>
+      <div style="background: var(--brown-mid); padding: 40px 20px;">
+        <div style="font-size: 40px; margin-bottom: 12px;">💳</div>
+        <div style="font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: white; letter-spacing: 2px;">Medios de pago</div>
+        <div style="font-size: 13px; color: var(--gray); margin-top: 6px;">Débito, crédito y MercadoPago</div>
+      </div>
+      <div style="background: var(--brown-accent); padding: 40px 20px;">
+        <div style="font-size: 40px; margin-bottom: 12px;">💬</div>
+        <div style="font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: white; letter-spacing: 2px;">Atención al cliente</div>
+        <div style="font-size: 13px; color: var(--gray); margin-top: 6px;">Respondemos por WhatsApp</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATALOG PAGE ===== -->
+<div class="page" id="page-catalog">
+  <div class="catalog-header">
+    <div style="max-width:1300px; margin:0 auto;">
+      <h1>TODOS LOS PRODUCTOS</h1>
+      <p>Colección completa FOKWARD</p>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterProducts('all', this)">Todos</button>
+    <button class="filter-btn" onclick="filterProducts('stw', this)">FOKWARD.STW</button>
+    <button class="filter-btn" onclick="filterProducts('sbl', this)">FOKWARD.SBL</button>
+    <button class="filter-btn" onclick="filterProducts('buzos', this)">Buzos</button>
+    <button class="filter-btn" onclick="filterProducts('remeras', this)">Remeras</button>
+    <button class="filter-btn" onclick="filterProducts('accesorios', this)">Accesorios</button>
+  </div>
+  <div class="section">
+    <div class="product-grid" id="catalogGrid"></div>
+  </div>
+</div>
+
+<!-- ===== PRODUCT DETAIL PAGE ===== -->
+<div class="page" id="page-product">
+  <div class="section">
+    <div style="margin-bottom: 24px;">
+      <button onclick="history.back(); goBack()" style="background:none; border:none; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:15px; letter-spacing:1px; color:var(--brown-accent);">← VOLVER</button>
+    </div>
+    <div class="detail-grid" id="productDetailContent"></div>
+  </div>
+</div>
+
+<!-- ===== CHECKOUT PAGE ===== -->
+<div class="page" id="page-checkout">
+  <div class="section">
+    <div style="margin-bottom: 32px;">
+      <div style="font-family:'Bebas Neue',sans-serif; font-size:48px; color:var(--brown-deep); letter-spacing:2px;">Finalizar compra</div>
+    </div>
+    <div class="checkout-layout">
+      <div>
+        <!-- Personal Data -->
+        <div class="form-section">
+          <h3>Datos personales</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre *</label>
+              <input type="text" id="firstName" placeholder="Tu nombre" required>
+            </div>
+            <div class="form-group">
+              <label>Apellido *</label>
+              <input type="text" id="lastName" placeholder="Tu apellido" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>DNI *</label>
+              <input type="text" id="dni" placeholder="12345678" required>
+            </div>
+            <div class="form-group">
+              <label>Teléfono / WhatsApp *</label>
+              <input type="tel" id="phone" placeholder="+54 9 11 1234-5678" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="email" placeholder="tu@email.com" required>
+          </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="form-section">
+          <h3>Dirección de envío</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Calle *</label>
+              <input type="text" id="street" placeholder="Av. Corrientes" required>
+            </div>
+            <div class="form-group">
+              <label>Número *</label>
+              <input type="text" id="streetNum" placeholder="1234" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Piso / Depto</label>
+              <input type="text" id="apartment" placeholder="3°B (opcional)">
+            </div>
+            <div class="form-group">
+              <label>Código Postal *</label>
+              <input type="text" id="postalCode" placeholder="1414" required onchange="updateShippingPrices()">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ciudad *</label>
+              <input type="text" id="city" placeholder="Buenos Aires" required>
+            </div>
+            <div class="form-group">
+              <label>Provincia *</label>
+              <select id="province" required onchange="updateShippingPrices()">
+                <option value="">Seleccionar...</option>
+                <option>Buenos Aires (AMBA)</option>
+                <option>Buenos Aires (Interior)</option>
+                <option>CABA</option>
+                <option>Córdoba</option>
+                <option>Santa Fe</option>
+                <option>Mendoza</option>
+                <option>Tucumán</option>
+                <option>Salta</option>
+                <option>Río Negro</option>
+                <option>Neuquén</option>
+                <option>Chubut</option>
+                <option>Santa Cruz</option>
+                <option>Tierra del Fuego</option>
+                <option>Corrientes</option>
+                <option>Misiones</option>
+                <option>Entre Ríos</option>
+                <option>Chaco</option>
+                <option>Formosa</option>
+                <option>Santiago del Estero</option>
+                <option>Catamarca</option>
+                <option>La Rioja</option>
+                <option>San Juan</option>
+                <option>San Luis</option>
+                <option>La Pampa</option>
+                <option>Jujuy</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping Method -->
+        <div class="form-section">
+          <h3>Método de envío</h3>
+          <div class="shipping-options" id="shippingOptions">
+            <div style="color:var(--gray); font-size:14px;">Seleccioná tu provincia para ver opciones de envío.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div>
+        <div class="order-summary">
+          <h3>Tu pedido</h3>
+          <div id="summaryItems"></div>
+          <div class="summary-total">
+            <span>Total</span>
+            <strong id="summaryTotal">$0</strong>
+          </div>
+          <button class="pay-btn" onclick="processPurchase()" id="payBtn">
+            Pagar con MercadoPago
+          </button>
+          <div class="mp-logo">
+            <span>🔒 Pago seguro con MercadoPago</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SUCCESS PAGE ===== -->
+<div class="page" id="page-success">
+  <div class="success-page">
+    <div>
+      <div class="success-icon">✅</div>
+      <h2>¡Compra exitosa!</h2>
+      <p>Recibimos tu pedido. Te vamos a contactar por WhatsApp o email para coordinar el envío. ¡Gracias por elegirnos!</p>
+      <button class="btn-primary" onclick="showPage('home')">Seguir comprando</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTACT PAGE ===== -->
+<div class="page" id="page-contact">
+  <div class="section">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h2>CONTACTO</h2>
+        <p>¿Tenés alguna duda sobre talles, envíos o personalizaciones? Escribinos, respondemos rápido.</p>
+        <a class="contact-link" href="https://wa.me/541123989195">📱 WhatsApp: +54 11 2398-9195</a>
+        <a class="contact-link" href="https://instagram.com/fokward.stw" target="_blank">📸 @fokward.stw</a>
+        <a class="contact-link" href="https://instagram.com/fokward.sbl" target="_blank">📸 @fokward.sbl</a>
+      </div>
+      <div>
+        <div class="form-section">
+          <h3>Envianos un mensaje</h3>
+          <div class="form-group"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+          <div class="form-group"><label>Email</label><input type="email" placeholder="tu@email.com"></div>
+          <div class="form-group"><label>Mensaje</label><textarea style="width:100%;padding:12px;border:2px solid #e0d5cc;background:#faf7f4;font-family:'Barlow',sans-serif;font-size:15px;height:120px;outline:none;resize:vertical;" placeholder="Tu consulta..."></textarea></div>
+          <button class="btn-primary" style="width:100%;">Enviar mensaje</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SIZE GUIDE PAGE ===== -->
+<div class="page" id="page-size-guide">
+  <div class="section">
+    <div class="section-title">Guía de talles</div>
+    <div class="section-sub">Medidas en centímetros</div>
+    <h3 style="margin-bottom:12px; font-family:'Barlow Condensed',sans-serif; letter-spacing:2px; text-transform:uppercase; color:var(--brown-accent);">Remeras</h3>
+    <table class="size-guide-table">
+      <tr><th>Talle</th><th>Pecho</th><th>Largo</th><th>Hombro</th></tr>
+      <tr><td>S</td><td>96-100</td><td>68</td><td>44</td></tr>
+      <tr><td>M</td><td>100-104</td><td>70</td><td>46</td></tr>
+      <tr><td>L</td><td>104-108</td><td>72</td><td>48</td></tr>
+      <tr><td>XL</td><td>108-114</td><td>74</td><td>50</td></tr>
+      <tr><td>XXL</td><td>114-120</td><td>76</td><td>52</td></tr>
+    </table>
+    <br>
+    <h3 style="margin-bottom:12px; font-family:'Barlow Condensed',sans-serif; letter-spacing:2px; text-transform:uppercase; color:var(--brown-accent);">Buzos</h3>
+    <table class="size-guide-table">
+      <tr><th>Talle</th><th>Pecho</th><th>Largo</th><th>Manga</th></tr>
+      <tr><td>S</td><td>98-102</td><td>68</td><td>62</td></tr>
+      <tr><td>M</td><td>102-106</td><td>70</td><td>64</td></tr>
+      <tr><td>L</td><td>106-110</td><td>72</td><td>66</td></tr>
+      <tr><td>XL</td><td>110-116</td><td>74</td><td>68</td></tr>
+      <tr><td>XXL</td><td>116-122</td><td>76</td><td>70</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="logo" onclick="showPage('home')">FO<span>K</span>WARD</a>
+        <p>Ropa urbana con identidad propia. Dos líneas, una sola visión: FOKWARD.STW y FOKWARD.SBL.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegación</h4>
+        <a onclick="showPage('home')">Inicio</a>
+        <a onclick="showPage('catalog')">Productos</a>
+        <a onclick="showPage('contact')">Contacto</a>
+        <a onclick="showPage('size-guide')">Guía de talles</a>
+      </div>
+      <div class="footer-col">
+        <h4>Líneas</h4>
+        <a onclick="filterProducts('stw'); showPage('catalog')">FOKWARD.STW</a>
+        <a onclick="filterProducts('sbl'); showPage('catalog')">FOKWARD.SBL</a>
+      </div>
+      <div class="footer-col">
+        <h4>Redes</h4>
+        <a href="https://instagram.com/fokward.stw" target="_blank">@fokward.stw</a>
+        <a href="https://instagram.com/fokward.sbl" target="_blank">@fokward.sbl</a>
+        <a href="https://wa.me/541123989195">WhatsApp</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 FOKWARD.STW — Todos los derechos reservados</p>
+      <p style="font-size:11px;">Defensa del consumidor — <a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario" style="color:var(--gray);">Reclamos</a></p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+// PRODUCTS DATABASE — Editá esto para agregar/modificar
+// ============================================================
+const products = [
+  {
+    id: 1, name: 'Buzo FVCK LOVE', line: 'stw', category: 'buzos',
+    price: 48000, oldPrice: 50000,
+    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Marrón', hex:'#5c3820'},{name:'Negro', hex:'#1a1a1a'}],
+    sizes: ['S','M','L','XL','XXL'],
+    featured: true,
+    desc: 'Buzo con estampado "FVCK LOVE" en tipografía exclusiva. Tela de alta calidad, interior plush.',
+    image: null
+  },
+  {
+    id: 2, name: 'Buzo CANSERBERO', line: 'stw', category: 'buzos',
+    price: 48000, oldPrice: 50000,
+    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Negro', hex:'#1a1a1a'}],
+    sizes: ['S','M','L','XL','XXL'],
+    featured: true,
+    desc: 'Homenaje al legendario. Buzo con arte exclusivo inspirado en Canserbero.',
+    image: null
+  },
+  {
+    id: 3, name: 'Remera YSY A', line: 'stw', category: 'remeras',
+    price: 28000, oldPrice: 30000,
+    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Negro', hex:'#1a1a1a'}],
+    sizes: ['S','M','L','XL','XXL'],
+    featured: true,
+    desc: 'Remera de algodón pesado con estampado artístico. Corte oversize.',
+    image: null
+  },
+  {
+    id: 4, name: 'Remera personalizada', line: 'sbl', category: 'remeras',
+    price: 26000, oldPrice: null,
+    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Negro', hex:'#1a1a1a'}],
+    sizes: ['S','M','L','XL','XXL'],
+    featured: false,
+    desc: 'Remera 100% personalizada con tu diseño. Consultanos por WhatsApp antes de comprar.',
+    image: null
+  },
+  {
+    id: 5, name: 'Calcomanías holográficas', line: 'sbl', category: 'accesorios',
+    price: 450, oldPrice: 500,
+    colors: [],
+    sizes: [],
+    featured: true,
+    desc: 'Pack de calcomanías holográficas FOKWARD.SBL. Efecto espejo iridiscente.',
+    image: null
+  },
+  {
+    id: 6, name: 'Buzo personalizado', line: 'sbl', category: 'buzos',
+    price: 46000, oldPrice: null,
+    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Negro', hex:'#1a1a1a'}],
+    sizes: ['S','M','L','XL','XXL'],
+    featured: false,
+    desc: 'Buzo 100% a tu medida. Traé tu diseño y lo hacemos realidad.',
+    image: null
+  },
+  {
+    id: 7, name: 'Parche personalizado', line: 'sbl', category: 'accesorios',
+    price: 450, oldPrice: 750,
+    colors: [],
+    sizes: [],
+    featured: true,
+    desc: 'Parches bordados o sublimados personalizados. Ideales para ropa y accesorios.',
+    image: null
+  },
+  {
+    id: 8, name: 'Campera personalizada', line: 'sbl', category: 'buzos',
+    price: 50000, oldPrice: null,
+    colors: [{name:'Negro', hex:'#1a1a1a'},{name:'Marrón', hex:'#5c3820'}],
+    sizes: ['S','M','L','XL','XXL'],
+    featured: false,
+    desc: 'Campera personalizada con tu diseño. Calidad premium.',
+    image: null
+  },
+  {
+    id: 9, name: 'Buzo Scout', line: 'sbl', category: 'buzos',
+    price: 46000, oldPrice: null,
+    colors: [{name:'Verde', hex:'#3a5a40'},{name:'Negro', hex:'#1a1a1a'}],
+    sizes: ['S','M','L','XL','XXL'],
+    featured: false,
+    desc: 'Buzo estilo Scout con detalles artesanales y parches incluidos.',
+    image: null
+  },
+];
+
+// ============================================================
+// SHIPPING TABLE — precios por zona (ARS)
+// ============================================================
+const shippingZones = {
+  'CABA': {
+    oca: { price: 3500, days: '2-3' },
+    andreani: { price: 3800, days: '2-3' },
+    correo: { price: 3200, days: '3-5' }
+  },
+  'Buenos Aires (AMBA)': {
+    oca: { price: 4000, days: '2-4' },
+    andreani: { price: 4200, days: '2-4' },
+    correo: { price: 3500, days: '3-6' }
+  },
+  'Buenos Aires (Interior)': {
+    oca: { price: 5500, days: '3-5' },
+    andreani: { price: 5800, days: '3-5' },
+    correo: { price: 4800, days: '4-7' }
+  },
+  'default': { // resto del país
+    oca: { price: 7000, days: '4-7' },
+    andreani: { price: 7500, days: '4-7' },
+    correo: { price: 6000, days: '5-10' }
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let cart = JSON.parse(localStorage.getItem('fw_cart') || '[]');
+let currentProduct = null;
+let selectedShipping = null;
+let previousPage = 'home';
+
+// ============================================================
+// UTILS
+// ============================================================
+function formatPrice(n) {
+  return '$' + n.toLocaleString('es-AR');
+}
+function saveCart() {
+  localStorage.setItem('fw_cart', JSON.stringify(cart));
+  updateCartUI();
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// PAGES
+// ============================================================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  window.scrollTo(0, 0);
+  if (page === 'checkout') renderCheckoutSummary();
+  if (page === 'catalog') renderCatalog(products);
+}
+
+function goBack() {
+  showPage(previousPage);
+}
+
+// ============================================================
+// PRODUCT CARDS
+// ============================================================
+function productCardHTML(p) {
+  const discount = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+  return `
+    <div class="product-card" onclick="showProduct(${p.id})">
+      <div class="product-img">
+        ${p.image ? `<img src="${p.image}" alt="${p.name}">` : p.name.substring(0,2).toUpperCase()}
+      </div>
+      ${discount > 0 ? `<div class="badge">${discount}% OFF</div>` : ''}
+      <div class="product-info">
+        <div class="product-category">${p.line.toUpperCase()} · ${p.category}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-price">
+          <div class="price-now">${formatPrice(p.price)}</div>
+          ${p.oldPrice ? `<div class="price-old">${formatPrice(p.oldPrice)}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderFeatured() {
+  const fg = document.getElementById('featuredGrid');
+  const sg = document.getElementById('sblGrid');
+  fg.innerHTML = products.filter(p => p.featured && p.line === 'stw').map(productCardHTML).join('');
+  sg.innerHTML = products.filter(p => p.featured && p.line === 'sbl').map(productCardHTML).join('');
+}
+
+function renderCatalog(list) {
+  document.getElementById('catalogGrid').innerHTML = list.map(productCardHTML).join('');
+}
+
+function filterProducts(cat, btn) {
+  if (btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  let filtered = products;
+  if (cat !== 'all') filtered = products.filter(p => p.line === cat || p.category === cat);
+  renderCatalog(filtered);
+}
+
+// ============================================================
+// PRODUCT DETAIL
+// ============================================================
+function showProduct(id) {
+  currentProduct = products.find(p => p.id === id);
+  if (!currentProduct) return;
+  previousPage = document.querySelector('.page.active').id.replace('page-', '');
+
+  const p = currentProduct;
+  const discount = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+
+  document.getElementById('productDetailContent').innerHTML = `
+    <div class="detail-img">
+      ${p.image ? `<img src="${p.image}" alt="${p.name}">` : p.name.substring(0,3).toUpperCase()}
+    </div>
+    <div class="detail-info">
+      <div class="detail-brand">FOKWARD.${p.line.toUpperCase()} · ${p.category}</div>
+      <div class="detail-name">${p.name}</div>
+      <div class="detail-price">
+        ${formatPrice(p.price)}
+        ${p.oldPrice ? `<span class="old">${formatPrice(p.oldPrice)}</span>` : ''}
+        ${discount > 0 ? `<span style="font-size:18px;color:var(--orange);margin-left:8px;">${discount}% OFF</span>` : ''}
+      </div>
+      <p style="color:var(--gray); line-height:1.7; margin-bottom:24px;">${p.desc}</p>
+
+      ${p.colors.length > 0 ? `
+        <div class="selector-label">Color: <span id="selectedColor">${p.colors[0].name}</span></div>
+        <div class="color-options">
+          ${p.colors.map((c,i) => `
+            <div class="color-btn ${i===0?'active':''}" 
+              style="background:${c.hex}; border-color:${i===0?'var(--orange)':'transparent'};"
+              onclick="selectColor(this, '${c.name}')" 
+              title="${c.name}">
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${p.sizes.length > 0 ? `
+        <div class="selector-label">Talle: <span id="selectedSize">${p.sizes[0]}</span></div>
+        <div class="size-options">
+          ${p.sizes.map((s,i) => `
+            <button class="size-btn ${i===0?'active':''}" onclick="selectSize(this, '${s}')">${s}</button>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      <button class="add-cart-btn" onclick="addToCart(${p.id})">+ Agregar al carrito</button>
+      <button class="buy-now-btn" onclick="addToCart(${p.id}); showPage('checkout')">Comprar ahora →</button>
+
+      <div class="shipping-info">
+        <p>📦 <strong>Envíos a todo el país</strong> — OCA, Andreani y Correo Argentino<br>
+        💳 <strong>Pago seguro</strong> — Débito, crédito y MercadoPago</p>
+      </div>
+    </div>
+  `;
+  showPage('product');
+}
+
+function selectColor(el, name) {
+  document.querySelectorAll('.color-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor = 'transparent'; });
+  el.classList.add('active');
+  el.style.borderColor = 'var(--orange)';
+  document.getElementById('selectedColor').textContent = name;
+}
+
+function selectSize(el, size) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('selectedSize').textContent = size;
+}
+
+// ============================================================
+// CART
+// ============================================================
+function addToCart(id) {
+  const p = products.find(x => x.id === id);
+  const color = document.getElementById('selectedColor')?.textContent || (p.colors[0]?.name || '—');
+  const size = document.getElementById('selectedSize')?.textContent || (p.sizes[0] || '—');
+
+  const existing = cart.find(i => i.id === id && i.color === color && i.size === size);
+  if (existing) { existing.qty++; }
+  else { cart.push({ id, name: p.name, price: p.price, color, size, qty: 1, image: p.image }); }
+
+  saveCart();
+  showToast(`✓ ${p.name} agregado al carrito`);
+}
+
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  saveCart();
+  renderCartItems();
+}
+
+function updateCartUI() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cartCount').textContent = total;
+}
+
+function openCart() {
+  document.getElementById('cartOverlay').classList.add('open');
+  document.getElementById('cartSidebar').classList.add('open');
+  renderCartItems();
+}
+
+function closeCart() {
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.getElementById('cartSidebar').classList.remove('open');
+}
+
+function renderCartItems() {
+  const container = document.getElementById('cartItems');
+  const footer = document.getElementById('cartFooter');
+  if (cart.length === 0) {
+    container.innerHTML = '<div class="empty-cart"><p>Tu carrito está vacío</p></div>';
+    footer.innerHTML = '';
+    return;
+  }
+  container.innerHTML = cart.map((item, idx) => `
+    <div class="cart-item">
+      <div class="cart-item-img">
+        ${item.image ? `<img src="${item.image}">` : item.name.substring(0,2).toUpperCase()}
+      </div>
+      <div class="cart-item-details">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-meta">Color: ${item.color} · Talle: ${item.size} · x${item.qty}</div>
+        <div class="cart-item-price">${formatPrice(item.price * item.qty)}</div>
+      </div>
+      <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
+    </div>
+  `).join('');
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  footer.innerHTML = `
+    <div class="cart-total">
+      <span>Subtotal</span>
+      <strong>${formatPrice(subtotal)}</strong>
+    </div>
+    <button class="checkout-btn" onclick="closeCart(); showPage('checkout')">Finalizar compra →</button>
+  `;
+}
+
+// ============================================================
+// SHIPPING CALCULATOR
+// ============================================================
+function updateShippingPrices() {
+  const province = document.getElementById('province').value;
+  if (!province) return;
+
+  const zone = shippingZones[province] || shippingZones['default'];
+  const opts = document.getElementById('shippingOptions');
+  selectedShipping = null;
+
+  opts.innerHTML = `
+    <label class="shipping-option" onclick="selectShipping(this, 'oca', ${zone.oca.price})">
+      <input type="radio" name="shipping" value="oca">
+      <div class="shipping-option-info">
+        <div class="shipping-option-name">📦 OCA</div>
+        <div class="shipping-option-desc">Entrega en ${zone.oca.days} días hábiles</div>
+      </div>
+      <div class="shipping-option-price">${formatPrice(zone.oca.price)}</div>
+    </label>
+    <label class="shipping-option" onclick="selectShipping(this, 'andreani', ${zone.andreani.price})">
+      <input type="radio" name="shipping" value="andreani">
+      <div class="shipping-option-info">
+        <div class="shipping-option-name">🚚 Andreani</div>
+        <div class="shipping-option-desc">Entrega en ${zone.andreani.days} días hábiles</div>
+      </div>
+      <div class="shipping-option-price">${formatPrice(zone.andreani.price)}</div>
+    </label>
+    <label class="shipping-option" onclick="selectShipping(this, 'correo', ${zone.correo.price})">
+      <input type="radio" name="shipping" value="correo">
+      <div class="shipping-option-info">
+        <div class="shipping-option-name">📮 Correo Argentino</div>
+        <div class="shipping-option-desc">Entrega en ${zone.correo.days} días hábiles</div>
+      </div>
+      <div class="shipping-option-price">${formatPrice(zone.correo.price)}</div>
+    </label>
+  `;
+  renderCheckoutSummary();
+}
+
+function selectShipping(el, carrier, price) {
+  document.querySelectorAll('.shipping-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedShipping = { carrier, price };
+  renderCheckoutSummary();
+}
+
+// ============================================================
+// CHECKOUT SUMMARY
+// ============================================================
+function renderCheckoutSummary() {
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const shipping = selectedShipping ? selectedShipping.price : 0;
+  const total = subtotal + shipping;
+
+  document.getElementById('summaryItems').innerHTML = `
+    ${cart.map(i => `
+      <div class="summary-item">
+        <span>${i.name} x${i.qty} (${i.size})</span>
+        <strong>${formatPrice(i.price * i.qty)}</strong>
+      </div>
+    `).join('')}
+    <div class="summary-item">
+      <span>Subtotal</span>
+      <strong>${formatPrice(subtotal)}</strong>
+    </div>
+    <div class="summary-item">
+      <span>Envío ${selectedShipping ? '(' + selectedShipping.carrier.toUpperCase() + ')' : ''}</span>
+      <strong>${selectedShipping ? formatPrice(selectedShipping.price) : '—'}</strong>
+    </div>
+  `;
+  document.getElementById('summaryTotal').textContent = formatPrice(total);
+}
+
+// ============================================================
+// PURCHASE — calls backend
+// ============================================================
+async function processPurchase() {
+  const fields = ['firstName','lastName','dni','phone','email','street','streetNum','postalCode','city','province'];
+  for (const f of fields) {
+    const el = document.getElementById(f);
+    if (!el.value.trim()) {
+      showToast('⚠️ Completá todos los campos obligatorios');
+      el.focus();
+      return;
+    }
+  }
+  if (!selectedShipping) {
+    showToast('⚠️ Seleccioná un método de envío');
+    return;
+  }
+  if (cart.length === 0) {
+    showToast('⚠️ Tu carrito está vacío');
+    return;
+  }
+
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  btn.textContent = 'Procesando...';
+
+  const orderData = {
+    customer: {
+      firstName: document.getElementById('firstName').value,
+      lastName: document.getElementById('lastName').value,
+      dni: document.getElementById('dni').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+    },
+    address: {
+      street: document.getElementById('street').value,
+      number: document.getElementById('streetNum').value,
+      apartment: document.getElementById('apartment').value,
+      postalCode: document.getElementById('postalCode').value,
+      city: document.getElementById('city').value,
+      province: document.getElementById('province').value,
+    },
+    shipping: selectedShipping,
+    items: cart,
+    total: cart.reduce((s,i) => s + i.price*i.qty, 0) + selectedShipping.price,
+  };
+
+  try {
+    const res = await fetch('/api/create-preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    });
+    const data = await res.json();
+
+    if (data.init_point) {
+      // Redirect to MercadoPago
+      window.location.href = data.init_point;
+    } else {
+      throw new Error(data.error || 'Error desconocido');
+    }
+  } catch (err) {
+    showToast('❌ Error al procesar el pago. Intentá de nuevo.');
+    btn.disabled = false;
+    btn.textContent = 'Pagar con MercadoPago';
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', () => {
+  // Check for MP return
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('status') === 'approved') {
+    cart = [];
+    saveCart();
+    showPage('success');
+  }
+
+  renderFeatured();
+  renderCatalog(products);
+  updateCartUI();
+
+  setTimeout(() => {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+  }, 1400);
+});
+</script>
+</body>
+</html>
