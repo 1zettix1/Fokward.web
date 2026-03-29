@@ -1,20 +1,20 @@
 // ============================================================
-// FOKWARD.STW — Backend Server
-// Maneja: MercadoPago, emails de notificación, webhooks
+// FOKWARD.STW — Backend Server v2
+// Auth: SQLite + JWT + bcrypt
+// Pagos: MercadoPago | Emails: Nodemailer
 // ============================================================
-
-const express = require('express');
+const express  = require('express');
+const path     = require('path');
+const bcrypt   = require('bcryptjs');
+const jwt      = require('jsonwebtoken');
+const Database = require('better-sqlite3');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const nodemailer = require('nodemailer');
-const path = require('path');
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// ============================================================
-// CONFIGURACIÓN — COMPLETAR CON TUS DATOS
-// ============================================================
 const CONFIG = {
   MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN,
   MP_PUBLIC_KEY:   process.env.MP_PUBLIC_KEY,
@@ -22,256 +22,182 @@ const CONFIG = {
   OWNER_EMAIL:     process.env.OWNER_EMAIL,
   EMAIL_USER:      process.env.EMAIL_USER,
   EMAIL_PASS:      process.env.EMAIL_PASS,
+  JWT_SECRET:      process.env.JWT_SECRET || 'fokward_jwt_secret_2026',
   PORT:            process.env.PORT || 3000,
 };
 
-// ============================================================
-// MERCADOPAGO SETUP
-// ============================================================
+// ── SQLite ───────────────────────────────────────────────────
+const db = new Database('fokward.db');
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    firstName TEXT NOT NULL,
+    lastName  TEXT NOT NULL,
+    email     TEXT UNIQUE NOT NULL,
+    password  TEXT NOT NULL,
+    createdAt TEXT DEFAULT (datetime('now'))
+  );
+`);
+
+// ── MercadoPago ──────────────────────────────────────────────
 const mp = new MercadoPagoConfig({ accessToken: CONFIG.MP_ACCESS_TOKEN });
 
-// ============================================================
-// NODEMAILER SETUP
-// ============================================================
+// ── Nodemailer ───────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
   service: 'gmail',
-  auth: {
-    user: CONFIG.EMAIL_USER,
-    pass: CONFIG.EMAIL_PASS,
-  },
+  auth: { user: CONFIG.EMAIL_USER, pass: CONFIG.EMAIL_PASS },
 });
 
-// ============================================================
-// CREAR PREFERENCIA DE PAGO
-// POST /api/create-preference
-// ============================================================
+// ── Auth middleware ──────────────────────────────────────────
+function auth(req, res, next) {
+  const token = (req.headers['authorization'] || '').split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No autorizado' });
+  try { req.user = jwt.verify(token, CONFIG.JWT_SECRET); next(); }
+  catch { res.status(401).json({ error: 'Token inválido' }); }
+}
+
+// ── REGISTER ─────────────────────────────────────────────────
+app.post('/api/auth/register', async (req, res) => {
+  const { firstName, lastName, email, password } = req.body;
+  if (!firstName || !lastName || !email || !password)
+    return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+  if (password.length < 6)
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  try {
+    if (db.prepare('SELECT id FROM users WHERE email=?').get(email))
+      return res.status(400).json({ error: 'El email ya está registrado' });
+    const hash = await bcrypt.hash(password, 10);
+    const r = db.prepare('INSERT INTO users (firstName,lastName,email,password) VALUES (?,?,?,?)').run(firstName,lastName,email,hash);
+    const token = jwt.sign({ id:r.lastInsertRowid, email, firstName, lastName }, CONFIG.JWT_SECRET, { expiresIn:'30d' });
+    res.json({ token, user:{ id:r.lastInsertRowid, firstName, lastName, email } });
+  } catch(e) { console.error(e); res.status(500).json({ error:'Error al registrar' }); }
+});
+
+// ── LOGIN ────────────────────────────────────────────────────
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error:'Campos requeridos' });
+  try {
+    const user = db.prepare('SELECT * FROM users WHERE email=?').get(email);
+    if (!user || !(await bcrypt.compare(password, user.password)))
+      return res.status(400).json({ error:'Email o contraseña incorrectos' });
+    const token = jwt.sign({ id:user.id, email:user.email, firstName:user.firstName, lastName:user.lastName }, CONFIG.JWT_SECRET, { expiresIn:'30d' });
+    res.json({ token, user:{ id:user.id, firstName:user.firstName, lastName:user.lastName, email:user.email } });
+  } catch(e) { console.error(e); res.status(500).json({ error:'Error al iniciar sesión' }); }
+});
+
+// ── GET PROFILE ──────────────────────────────────────────────
+app.get('/api/auth/profile', auth, (req, res) => {
+  const user = db.prepare('SELECT id,firstName,lastName,email,createdAt FROM users WHERE id=?').get(req.user.id);
+  if (!user) return res.status(404).json({ error:'Usuario no encontrado' });
+  res.json({ user });
+});
+
+// ── UPDATE PROFILE ───────────────────────────────────────────
+app.put('/api/auth/profile', auth, async (req, res) => {
+  const { firstName, lastName, email, currentPassword, newPassword } = req.body;
+  const user = db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id);
+  if (!user) return res.status(404).json({ error:'Usuario no encontrado' });
+  try {
+    let passwordField = user.password;
+    if (newPassword) {
+      if (!currentPassword) return res.status(400).json({ error:'Ingresá tu contraseña actual' });
+      if (!(await bcrypt.compare(currentPassword, user.password))) return res.status(400).json({ error:'Contraseña actual incorrecta' });
+      if (newPassword.length < 6) return res.status(400).json({ error:'Mínimo 6 caracteres' });
+      passwordField = await bcrypt.hash(newPassword, 10);
+    }
+    if (email && email !== user.email && db.prepare('SELECT id FROM users WHERE email=? AND id!=?').get(email, user.id))
+      return res.status(400).json({ error:'Email ya en uso' });
+    db.prepare('UPDATE users SET firstName=?,lastName=?,email=?,password=? WHERE id=?')
+      .run(firstName||user.firstName, lastName||user.lastName, email||user.email, passwordField, user.id);
+    const updated = db.prepare('SELECT id,firstName,lastName,email,createdAt FROM users WHERE id=?').get(user.id);
+    const token = jwt.sign({ id:updated.id, email:updated.email, firstName:updated.firstName, lastName:updated.lastName }, CONFIG.JWT_SECRET, { expiresIn:'30d' });
+    res.json({ user:updated, token });
+  } catch(e) { console.error(e); res.status(500).json({ error:'Error al actualizar' }); }
+});
+
+// ── MERCADOPAGO ──────────────────────────────────────────────
+const pendingOrders = {};
 app.post('/api/create-preference', async (req, res) => {
   const { customer, address, shipping, items, total } = req.body;
-
   try {
     const preference = new Preference(mp);
-
-    const mpItems = items.map(item => ({
-      id: String(item.id),
-      title: `${item.name} — Talle: ${item.size} / Color: ${item.color}`,
-      quantity: item.qty,
-      unit_price: item.price,
-      currency_id: 'ARS',
-    }));
-
-    // Agregar costo de envío como ítem
-    mpItems.push({
-      id: 'shipping',
-      title: `Envío ${shipping.carrier.toUpperCase()}`,
-      quantity: 1,
-      unit_price: shipping.price,
-      currency_id: 'ARS',
-    });
-
-    const preferenceData = {
+    const mpItems = [
+      ...items.map(item => ({ id:String(item.id), title:`${item.name} — ${item.size}/${item.color}`, quantity:item.qty, unit_price:item.price, currency_id:'ARS' })),
+      { id:'shipping', title:`Envío ${shipping.carrier.toUpperCase()}`, quantity:1, unit_price:shipping.price, currency_id:'ARS' }
+    ];
+    const result = await preference.create({ body:{
       items: mpItems,
-      payer: {
-        name: customer.firstName,
-        surname: customer.lastName,
-        email: customer.email,
-        phone: { area_code: '54', number: customer.phone },
-        identification: { type: 'DNI', number: customer.dni },
-        address: {
-          street_name: address.street,
-          street_number: parseInt(address.number),
-          zip_code: address.postalCode,
-        },
-      },
-      back_urls: {
-        success: `${CONFIG.STORE_URL}/?status=approved`,
-        failure: `${CONFIG.STORE_URL}/?status=failure`,
-        pending: `${CONFIG.STORE_URL}/?status=pending`,
-      },
-      auto_return: 'approved',
-      notification_url: `${CONFIG.STORE_URL}/api/webhook`,
-      metadata: {
-        customer,
-        address,
-        shipping,
-        items,
-        total,
-      },
-      statement_descriptor: 'FOKWARD STW',
-    };
-
-    const result = await preference.create({ body: preferenceData });
-
-    // Guardar orden en memoria (en producción usá una DB)
-    pendingOrders[result.id] = { customer, address, shipping, items, total, preferenceId: result.id };
-
-    res.json({ init_point: result.init_point, preference_id: result.id });
-
-  } catch (err) {
-    console.error('Error creando preferencia MP:', err);
-    res.status(500).json({ error: err.message });
-  }
+      payer:{ name:customer.firstName, surname:customer.lastName, email:customer.email,
+        phone:{ area_code:'54', number:customer.phone },
+        identification:{ type:'DNI', number:customer.dni },
+        address:{ street_name:address.street, street_number:parseInt(address.number), zip_code:address.postalCode } },
+      back_urls:{ success:`${CONFIG.STORE_URL}/?status=approved`, failure:`${CONFIG.STORE_URL}/?status=failure`, pending:`${CONFIG.STORE_URL}/?status=pending` },
+      auto_return:'approved',
+      notification_url:`${CONFIG.STORE_URL}/api/webhook`,
+      metadata:{ customer, address, shipping, items, total },
+      statement_descriptor:'FOKWARD STW',
+    }});
+    pendingOrders[result.id] = { customer, address, shipping, items, total };
+    res.json({ init_point:result.init_point, preference_id:result.id });
+  } catch(e) { console.error('Error MP:',e); res.status(500).json({ error:e.message }); }
 });
 
-// ============================================================
-// WEBHOOK DE MERCADOPAGO
-// POST /api/webhook
-// ============================================================
-const pendingOrders = {}; // En producción: reemplazar con base de datos
-
+// ── WEBHOOK ──────────────────────────────────────────────────
 app.post('/api/webhook', async (req, res) => {
-  res.sendStatus(200); // Responder rápido a MP
-
-  const { type, data } = req.body;
-  if (type !== 'payment') return;
-
+  res.sendStatus(200);
+  if (req.body.type !== 'payment') return;
   try {
     const payment = new Payment(mp);
-    const paymentData = await payment.get({ id: data.id });
-
-    if (paymentData.status !== 'approved') return;
-
-    // Recuperar datos de la orden
-    const order = pendingOrders[paymentData.preference_id] || paymentData.metadata;
+    const pd = await payment.get({ id:req.body.data.id });
+    if (pd.status !== 'approved') return;
+    const order = pendingOrders[pd.preference_id] || pd.metadata;
     if (!order) return;
-
-    // Enviar email de notificación al dueño
-    await sendSaleNotification(paymentData, order);
-
-    // Enviar confirmación al cliente
-    await sendClientConfirmation(order, paymentData.id);
-
-    // Limpiar orden pendiente
-    delete pendingOrders[paymentData.preference_id];
-
-  } catch (err) {
-    console.error('Error en webhook:', err);
-  }
+    await sendSaleNotification(pd, order);
+    await sendClientConfirmation(order, pd.id);
+    delete pendingOrders[pd.preference_id];
+  } catch(e) { console.error('Webhook error:',e); }
 });
 
-// ============================================================
-// EMAIL AL DUEÑO — notificación de venta
-// ============================================================
+// ── EMAILS ───────────────────────────────────────────────────
+const fp = n => '$' + Number(n).toLocaleString('es-AR');
+
 async function sendSaleNotification(payment, order) {
   const { customer, address, shipping, items, total } = order;
-
-  const itemsList = items.map(i =>
-    `• ${i.name} — Talle: ${i.size} / Color: ${i.color} — x${i.qty} — ${formatPrice(i.price * i.qty)}`
-  ).join('\n');
-
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a0e07; color: white; padding: 0;">
-      <div style="background: #2c1a0e; padding: 30px; text-align: center;">
-        <h1 style="font-size: 36px; letter-spacing: 4px; margin: 0; color: white;">FOKWARD<span style="color:#e07b2a;">.</span>STW</h1>
-        <p style="color: #e07b2a; margin: 8px 0 0; letter-spacing: 2px; text-transform: uppercase; font-size: 13px;">Nueva venta</p>
-      </div>
-      <div style="padding: 30px; background: #f5efe8; color: #1a0e07;">
-        <h2 style="color: #e07b2a; border-bottom: 2px solid #3d2510; padding-bottom: 12px;">✅ ¡Vendiste!</h2>
-        
-        <h3 style="color: #3d2510; margin-top: 24px;">👤 Datos del cliente</h3>
-        <table style="width:100%; border-collapse: collapse;">
-          <tr><td style="padding:6px 0; font-weight:bold; width:35%;">Nombre completo:</td><td>${customer.firstName} ${customer.lastName}</td></tr>
-          <tr><td style="padding:6px 0; font-weight:bold;">DNI:</td><td>${customer.dni}</td></tr>
-          <tr><td style="padding:6px 0; font-weight:bold;">Email:</td><td>${customer.email}</td></tr>
-          <tr><td style="padding:6px 0; font-weight:bold;">Teléfono/WhatsApp:</td><td>${customer.phone}</td></tr>
-        </table>
-        
-        <h3 style="color: #3d2510; margin-top: 24px;">📦 Dirección de envío</h3>
-        <table style="width:100%; border-collapse: collapse;">
-          <tr><td style="padding:6px 0; font-weight:bold; width:35%;">Calle:</td><td>${address.street} ${address.number}${address.apartment ? ', ' + address.apartment : ''}</td></tr>
-          <tr><td style="padding:6px 0; font-weight:bold;">Ciudad:</td><td>${address.city}</td></tr>
-          <tr><td style="padding:6px 0; font-weight:bold;">Provincia:</td><td>${address.province}</td></tr>
-          <tr><td style="padding:6px 0; font-weight:bold;">Código Postal:</td><td>${address.postalCode}</td></tr>
-          <tr><td style="padding:6px 0; font-weight:bold;">Transporte:</td><td style="color:#e07b2a; font-weight:bold;">${shipping.carrier.toUpperCase()} — ${formatPrice(shipping.price)}</td></tr>
-        </table>
-        
-        <h3 style="color: #3d2510; margin-top: 24px;">🛍️ Productos vendidos</h3>
-        <div style="background: white; padding: 16px; border-left: 4px solid #e07b2a;">
-          ${items.map(i => `
-            <div style="padding: 8px 0; border-bottom: 1px solid #e0d5cc;">
-              <strong>${i.name}</strong><br>
-              <span style="color:#5c3820;">Talle: ${i.size} · Color: ${i.color} · Cantidad: ${i.qty}</span><br>
-              <span style="color:#e07b2a; font-weight:bold;">${formatPrice(i.price * i.qty)}</span>
-            </div>
-          `).join('')}
-          <div style="margin-top:12px; font-size:12px; color:#888;">Envío ${shipping.carrier.toUpperCase()}: ${formatPrice(shipping.price)}</div>
-        </div>
-        
-        <div style="background: #1a0e07; color: white; padding: 20px; margin-top: 20px; text-align: center;">
-          <div style="font-size: 13px; color: #a89080; margin-bottom: 4px;">TOTAL COBRADO</div>
-          <div style="font-size: 36px; color: #e07b2a; font-weight: bold;">${formatPrice(total)}</div>
-          <div style="font-size: 12px; color: #a89080; margin-top: 4px;">ID de pago MP: ${payment.id}</div>
-        </div>
-      </div>
-      <div style="background: #2c1a0e; padding: 20px; text-align: center;">
-        <p style="color: #a89080; font-size: 12px; margin: 0;">FOKWARD.STW · fokward.stw@gmail.com</p>
-      </div>
-    </div>
-  `;
-
   await transporter.sendMail({
-    from: `"FOKWARD Store" <${CONFIG.EMAIL_USER}>`,
+    from:`"FOKWARD Store" <${CONFIG.EMAIL_USER}>`,
     to: CONFIG.OWNER_EMAIL,
-    subject: `✅ Nueva venta — ${customer.firstName} ${customer.lastName} — ${formatPrice(total)}`,
-    html,
-    text: `NUEVA VENTA\n\nCliente: ${customer.firstName} ${customer.lastName}\nDNI: ${customer.dni}\nEmail: ${customer.email}\nTel: ${customer.phone}\n\nDirección: ${address.street} ${address.number}, ${address.city}, ${address.province} (CP: ${address.postalCode})\nEnvío: ${shipping.carrier} — ${formatPrice(shipping.price)}\n\nProductos:\n${itemsList}\n\nTOTAL: ${formatPrice(total)}\nID MP: ${payment.id}`,
+    subject:`✅ Nueva venta — ${customer.firstName} ${customer.lastName} — ${fp(total)}`,
+    html:`<div style="font-family:Arial;max-width:600px;margin:0 auto;">
+      <div style="background:#2c1a0e;padding:24px;text-align:center;"><h1 style="color:white;font-size:32px;letter-spacing:3px;margin:0;">FOKWARD<span style="color:#e07b2a;">.</span>STW</h1><p style="color:#e07b2a;margin:6px 0 0;text-transform:uppercase;font-size:12px;letter-spacing:2px;">Nueva venta ✅</p></div>
+      <div style="padding:24px;background:#f5efe8;">
+        <h3 style="color:#3d2510;">👤 Cliente</h3>
+        <p><b>Nombre:</b> ${customer.firstName} ${customer.lastName}<br><b>DNI:</b> ${customer.dni}<br><b>Email:</b> ${customer.email}<br><b>Tel/WA:</b> ${customer.phone}</p>
+        <h3 style="color:#3d2510;">📦 Dirección de envío</h3>
+        <p>${address.street} ${address.number}${address.apartment?', '+address.apartment:''}<br>${address.city}, ${address.province} — CP ${address.postalCode}<br><b>Transporte:</b> ${shipping.carrier.toUpperCase()} — ${fp(shipping.price)}</p>
+        <h3 style="color:#3d2510;">🛍️ Productos</h3>
+        ${items.map(i=>`<div style="padding:8px 0;border-bottom:1px solid #ddd;"><b>${i.name}</b> — Talle ${i.size} / ${i.color} x${i.qty} — <b style="color:#e07b2a;">${fp(i.price*i.qty)}</b></div>`).join('')}
+        <div style="margin-top:20px;background:#1a0e07;padding:20px;text-align:center;"><p style="color:#a89080;margin:0;font-size:12px;">TOTAL COBRADO</p><p style="color:#e07b2a;font-size:32px;font-weight:bold;margin:4px 0;">${fp(total)}</p><p style="color:#a89080;font-size:11px;margin:0;">ID MercadoPago: ${payment.id}</p></div>
+      </div></div>`
   });
-
-  console.log(`✅ Email de venta enviado — ${customer.firstName} ${customer.lastName} — ${formatPrice(total)}`);
 }
 
-// ============================================================
-// EMAIL AL CLIENTE — confirmación de compra
-// ============================================================
 async function sendClientConfirmation(order, paymentId) {
   const { customer, items, shipping, total } = order;
-
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a0e07; color: white; padding: 0;">
-      <div style="background: #2c1a0e; padding: 30px; text-align: center;">
-        <h1 style="font-size: 36px; letter-spacing: 4px; margin: 0; color: white;">FOKWARD<span style="color:#e07b2a;">.</span>STW</h1>
-      </div>
-      <div style="padding: 30px; background: #f5efe8; color: #1a0e07;">
-        <h2 style="color: #e07b2a;">¡Gracias por tu compra, ${customer.firstName}!</h2>
-        <p>Recibimos tu pedido y te vamos a contactar por WhatsApp al <strong>${customer.phone}</strong> para coordinar el envío.</p>
-        
-        <div style="background: white; padding: 16px; border-left: 4px solid #e07b2a; margin: 20px 0;">
-          ${items.map(i => `
-            <div style="padding: 8px 0; border-bottom: 1px solid #e0d5cc;">
-              <strong>${i.name}</strong> — Talle ${i.size} / Color ${i.color} x${i.qty}<br>
-              <span style="color:#e07b2a;">${formatPrice(i.price * i.qty)}</span>
-            </div>
-          `).join('')}
-          <div style="margin-top:8px; font-size:13px; color:#888;">Envío ${shipping.carrier.toUpperCase()}: ${formatPrice(shipping.price)}</div>
-          <div style="font-size:18px; font-weight:bold; margin-top:8px;">Total: ${formatPrice(total)}</div>
-        </div>
-        
-        <p style="font-size:13px; color:#888;">N° de pago: ${paymentId}</p>
-        <p>¿Dudas? Escribinos a nuestro <a href="https://wa.me/541123989195" style="color:#e07b2a;">WhatsApp</a></p>
-      </div>
-      <div style="background: #2c1a0e; padding: 20px; text-align: center;">
-        <p style="color: #a89080; font-size: 12px; margin: 0;">@fokward.stw · @fokward.sbl</p>
-      </div>
-    </div>
-  `;
-
   await transporter.sendMail({
-    from: `"FOKWARD Store" <${CONFIG.EMAIL_USER}>`,
+    from:`"FOKWARD Store" <${CONFIG.EMAIL_USER}>`,
     to: customer.email,
-    subject: `Confirmación de compra — FOKWARD.STW`,
-    html,
+    subject:`Confirmación de compra — FOKWARD.STW`,
+    html:`<div style="font-family:Arial;max-width:600px;margin:0 auto;">
+      <div style="background:#2c1a0e;padding:24px;text-align:center;"><h1 style="color:white;font-size:32px;letter-spacing:3px;margin:0;">FOKWARD<span style="color:#e07b2a;">.</span>STW</h1></div>
+      <div style="padding:24px;background:#f5efe8;">
+        <h2 style="color:#e07b2a;">¡Gracias por tu compra, ${customer.firstName}!</h2>
+        <p>Recibimos tu pedido. Te contactamos por WhatsApp al <b>${customer.phone}</b>.</p>
+        ${items.map(i=>`<div style="padding:8px 0;border-bottom:1px solid #ddd;"><b>${i.name}</b> — ${i.size}/${i.color} x${i.qty} — ${fp(i.price*i.qty)}</div>`).join('')}
+        <p style="margin-top:12px;">Envío ${shipping.carrier.toUpperCase()}: ${fp(shipping.price)}<br><b>Total: ${fp(total)}</b></p>
+        <p style="font-size:11px;color:#888;">N° pago: ${paymentId}</p>
+      </div></div>`
   });
 }
 
-// ============================================================
-// UTILS
-// ============================================================
-function formatPrice(n) {
-  return '$' + Number(n).toLocaleString('es-AR');
-}
-
-// ============================================================
-// START SERVER
-// ============================================================
-app.listen(CONFIG.PORT, () => {
-  console.log(`🚀 FOKWARD Store corriendo en http://localhost:${CONFIG.PORT}`);
-});
+app.listen(CONFIG.PORT, () => console.log(`🚀 FOKWARD Store en http://localhost:${CONFIG.PORT}`));
