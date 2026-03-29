@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FOKWARD.STW</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;1,700;1,800;1,900&family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --brown-deep: #1a0e07;
@@ -24,7 +24,7 @@
     body {
       background: var(--cream);
       color: var(--brown-deep);
-      font-family: 'Barlow', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       overflow-x: hidden;
     }
 
@@ -324,6 +324,7 @@
       align-items: start;
     }
     @media(max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+    @media(max-width: 600px) { .gallery-outer { flex-direction: column; } .gallery-thumbs { flex-direction: row; max-height: none; overflow-x: auto; } }
     .detail-img {
       width: 100%;
       aspect-ratio: 4/5;
@@ -503,7 +504,7 @@
       padding: 12px;
       border: 2px solid #e0d5cc;
       background: #faf7f4;
-      font-family: 'Barlow', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 15px;
       color: var(--brown-deep);
       outline: none;
@@ -666,6 +667,50 @@
     .size-guide-table td { padding: 12px; border-bottom: 1px solid #e0d5cc; text-align: center; font-size: 14px; }
     .size-guide-table tr:nth-child(even) { background: #f5efe8; }
 
+
+    /* GALLERY */
+    .gallery-outer { display: flex; gap: 12px; align-items: flex-start; }
+    .gallery-thumbs {
+      display: flex; flex-direction: column; gap: 8px;
+      max-height: 520px; overflow-y: auto; flex-shrink: 0;
+    }
+    .gallery-thumb {
+      width: 70px; height: 70px; cursor: pointer; flex-shrink: 0;
+      border: 2px solid #ccc; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .gallery-thumb:hover { border-color: var(--orange-light); }
+    .gallery-thumb.gactive { border-color: var(--orange); }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gallery-main { flex: 1; position: relative; }
+    .carousel-wrap {
+      position: relative; width: 100%;
+      aspect-ratio: 4/5; background: var(--brown-dark); overflow: hidden;
+    }
+    .carousel-wrap img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block;
+    }
+    .carousel-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(0,0,0,0.5); color: white; border: none;
+      font-size: 22px; width: 40px; height: 40px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2; transition: background 0.2s;
+    }
+    .carousel-arrow:hover { background: var(--orange); }
+    .carousel-arrow.prev { left: 8px; }
+    .carousel-arrow.next { right: 8px; }
+    .carousel-dots {
+      display: flex; justify-content: center; gap: 6px; margin-top: 10px;
+    }
+    .carousel-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--brown-accent); cursor: pointer; border: none;
+      transition: background 0.2s;
+    }
+    .carousel-dot.dactive { background: var(--orange); }
+
     /* LOADING */
     .loading-overlay {
       position: fixed; inset: 0;
@@ -693,13 +738,161 @@
       .filter-bar { padding: 16px 20px; }
       nav { display: none; }
     }
+
+    /* ── AUTH ───────────────────────────────────────────────── */
+    .profile-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--cream); display: flex; align-items: center; gap: 8px;
+      font-family: 'Montserrat', sans-serif; font-size: 13px;
+      padding: 6px 10px; border-radius: 2px; transition: color 0.2s;
+      position: relative;
+    }
+    .profile-btn:hover { color: var(--orange); }
+    .profile-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--brown-accent); border: 2px solid var(--brown-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 700; color: white;
+      transition: border-color 0.2s;
+    }
+    .profile-btn:hover .profile-avatar { border-color: var(--orange); }
+
+    .profile-dropdown {
+      position: absolute; top: 56px; right: 0;
+      background: var(--brown-dark); min-width: 200px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      border-top: 2px solid var(--orange);
+      z-index: 200; display: none; flex-direction: column;
+    }
+    .profile-dropdown.open { display: flex; }
+    .profile-dropdown-header {
+      padding: 14px 16px; border-bottom: 1px solid var(--brown-accent);
+      font-size: 12px; color: var(--gray); letter-spacing: 1px;
+    }
+    .profile-dropdown-header strong { display: block; color: var(--cream); font-size: 14px; margin-bottom: 2px; }
+    .dropdown-item {
+      padding: 12px 16px; color: var(--cream); font-size: 13px;
+      cursor: pointer; transition: background 0.15s; display: flex; align-items: center; gap: 10px;
+      border: none; background: none; width: 100%; text-align: left; font-family: 'Montserrat', sans-serif;
+    }
+    .dropdown-item:hover { background: var(--brown-mid); color: var(--orange); }
+    .dropdown-item.danger { color: #e07070; }
+    .dropdown-item.danger:hover { background: rgba(224,112,112,0.1); }
+
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      z-index: 500; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: var(--cream); width: 100%; max-width: 440px;
+      max-height: 90vh; overflow-y: auto;
+      transform: translateY(20px); transition: transform 0.25s;
+      position: relative;
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0); }
+    .modal-header {
+      background: var(--brown-dark); padding: 24px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-header h2 {
+      font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 800;
+      font-style: italic; color: white; letter-spacing: 1px; margin: 0;
+    }
+    .modal-header h2 span { color: var(--orange); }
+    .modal-close {
+      background: none; border: none; color: var(--gray);
+      font-size: 22px; cursor: pointer; line-height: 1;
+    }
+    .modal-body { padding: 28px; }
+    .modal-tabs { display: flex; margin-bottom: 24px; }
+    .modal-tab {
+      flex: 1; padding: 10px; text-align: center;
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      border: none; background: none; color: var(--gray);
+      border-bottom: 2px solid #ddd; transition: all 0.2s;
+    }
+    .modal-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+    .modal-form-group { margin-bottom: 16px; }
+    .modal-form-group label {
+      display: block; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--brown-accent); margin-bottom: 6px;
+    }
+    .modal-form-group input {
+      width: 100%; padding: 11px 14px;
+      border: 2px solid #ddd; background: white;
+      font-family: 'Montserrat', sans-serif; font-size: 14px;
+      color: var(--brown-deep); outline: none; transition: border-color 0.2s;
+    }
+    .modal-form-group input:focus { border-color: var(--orange); }
+    .modal-submit {
+      width: 100%; background: var(--orange); color: white; border: none;
+      padding: 14px; font-family: 'Montserrat', sans-serif;
+      font-size: 15px; font-weight: 800; font-style: italic;
+      letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+      transition: background 0.2s; margin-top: 8px;
+    }
+    .modal-submit:hover { background: var(--orange-light); }
+    .modal-submit:disabled { background: var(--gray); cursor: not-allowed; }
+    .modal-error {
+      background: #fde8e8; border-left: 3px solid #e07070;
+      padding: 10px 14px; font-size: 13px; color: #a03030;
+      margin-bottom: 16px; display: none;
+    }
+    .modal-error.show { display: block; }
+    .modal-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--gray); }
+    .modal-switch a { color: var(--orange); cursor: pointer; font-weight: 700; }
+
+    /* Profile page */
+    .profile-page-header {
+      background: var(--brown-dark); padding: 50px 40px 40px;
+    }
+    .profile-page-header h1 {
+      font-family: 'Montserrat', sans-serif; font-size: 48px; font-weight: 900;
+      font-style: italic; color: white; letter-spacing: 2px; margin-bottom: 4px;
+    }
+    .profile-page-header h1 span { color: var(--orange); }
+    .profile-page-header p { color: var(--gray); font-size: 13px; letter-spacing: 1px; }
+    .profile-card {
+      background: white; padding: 32px; margin-bottom: 20px;
+      border-top: 3px solid var(--orange);
+    }
+    .profile-card h3 {
+      font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 800;
+      font-style: italic; color: var(--brown-deep); letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 20px;
+      padding-bottom: 12px; border-bottom: 1px solid #eee;
+    }
+    .profile-field { margin-bottom: 16px; }
+    .profile-field label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); display: block; margin-bottom: 4px; }
+    .profile-field input {
+      width: 100%; padding: 11px 14px; border: 2px solid #eee;
+      font-family: 'Montserrat', sans-serif; font-size: 14px; color: var(--brown-deep);
+      outline: none; transition: border-color 0.2s; background: #faf7f4;
+    }
+    .profile-field input:focus { border-color: var(--orange); background: white; }
+    .profile-save-btn {
+      background: var(--brown-dark); color: white; border: none;
+      padding: 12px 28px; font-family: 'Montserrat', sans-serif;
+      font-size: 14px; font-weight: 800; font-style: italic;
+      letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .profile-save-btn:hover { background: var(--orange); }
+    .profile-asset {
+      position: absolute; opacity: 0.06; pointer-events: none;
+    }
+
   </style>
 </head>
 <body>
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-logo">FO<span>K</span>WARD</div>
+  <img src="https://i.ibb.co/W4tKCNFm/logo.png" alt="FOKWARD" style="height:80px;width:auto;object-fit:contain;margin-bottom:24px;filter:brightness(0) invert(1);">
   <div class="loading-bar"><div class="loading-bar-inner"></div></div>
 </div>
 
@@ -736,27 +929,38 @@
 <!-- HEADER -->
 <header>
   <div class="header-inner">
-    <a class="logo" onclick="showPage('home')">FO<span>K</span>WARD</a>
+    <a class="logo" onclick="showPage('home')" style="display:flex;align-items:center;gap:10px;">
+        <img src="https://i.ibb.co/W4tKCNFm/logo.png" alt="FOKWARD" style="height:44px;width:auto;object-fit:contain;">
+      </a>
     <nav>
       <a onclick="showPage('home')">Inicio</a>
       <a onclick="showPage('catalog')">Productos</a>
       <a onclick="showPage('contact')">Contacto</a>
       <a onclick="showPage('size-guide')">Guía de talles</a>
     </nav>
-    <div class="header-right">
+    <div class="header-right" style="position:relative;">
       <button class="cart-btn" onclick="openCart()">
         🛒 Carrito <span class="cart-count" id="cartCount">0</span>
       </button>
+      <button class="profile-btn" onclick="toggleProfileDropdown()" id="profileBtn">
+        <div class="profile-avatar" id="profileAvatar">👤</div>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div id="profileDropdownContent"></div>
+      </div>
     </div>
   </div>
 </header>
 
 <!-- ===== HOME PAGE ===== -->
 <div class="page active" id="page-home">
-  <div class="hero">
+  <div class="hero" style="position:relative;overflow:hidden;">
+    <img src="https://i.ibb.co/4gfvpTqM/Property-1-Figura-loka.png" alt="" style="position:absolute;right:0;bottom:0;height:90%;opacity:0.12;pointer-events:none;object-fit:contain;">
+    <img src="https://i.ibb.co/ch5Fs8Q7/Property-1-Estella-con-sombra.png" alt="" style="position:absolute;right:30%;top:10%;height:120px;opacity:0.08;pointer-events:none;">
     <div class="hero-inner">
       <div class="hero-label">Nueva colección 2026</div>
-      <h1>FOKWARD<br><em>STW</em></h1>
+      <img src="https://i.ibb.co/HDRXHqLJ/fokward.png" alt="FOKWARD" style="height:80px;width:auto;margin-bottom:16px;display:block;filter:brightness(0) invert(1);">
+      <h1>STREETWEAR<br><em>ARGENTINO</em></h1>
       <p>Ropa urbana con identidad propia. Cada prenda es una declaración.</p>
       <button class="btn-primary" onclick="showPage('catalog')">Ver colección →</button>
     </div>
@@ -1033,12 +1237,122 @@
   </div>
 </div>
 
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal" onclick="handleModalOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>FO<span>K</span>WARD</h2>
+      <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabLogin" onclick="switchAuthTab('login')">Iniciar sesión</button>
+        <button class="modal-tab" id="tabRegister" onclick="switchAuthTab('register')">Crear cuenta</button>
+      </div>
+      <div id="authError" class="modal-error"></div>
+
+      <!-- LOGIN FORM -->
+      <div id="loginForm">
+        <div class="modal-form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="tu@email.com">
+        </div>
+        <div class="modal-form-group">
+          <label>Contraseña</label>
+          <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        <button class="modal-submit" onclick="handleLogin()" id="loginBtn">Iniciar sesión</button>
+        <div class="modal-switch">¿No tenés cuenta? <a onclick="switchAuthTab('register')">Creá una</a></div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="registerForm" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="modal-form-group">
+            <label>Nombre</label>
+            <input type="text" id="regFirstName" placeholder="Tu nombre">
+          </div>
+          <div class="modal-form-group">
+            <label>Apellido</label>
+            <input type="text" id="regLastName" placeholder="Tu apellido">
+          </div>
+        </div>
+        <div class="modal-form-group">
+          <label>Email</label>
+          <input type="email" id="regEmail" placeholder="tu@email.com">
+        </div>
+        <div class="modal-form-group">
+          <label>Contraseña (mínimo 6 caracteres)</label>
+          <input type="password" id="regPassword" placeholder="••••••••">
+        </div>
+        <button class="modal-submit" onclick="handleRegister()" id="registerBtn">Crear cuenta</button>
+        <div class="modal-switch">¿Ya tenés cuenta? <a onclick="switchAuthTab('login')">Iniciá sesión</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROFILE PAGE ===== -->
+<div class="page" id="page-profile">
+  <div class="profile-page-header">
+    <div style="max-width:1300px;margin:0 auto;">
+      <h1>MI <span>PERFIL</span></h1>
+      <p id="profileSubtitle">Gestioná tus datos personales</p>
+    </div>
+  </div>
+  <div class="section" style="max-width:700px;">
+    <!-- Personal info -->
+    <div class="profile-card">
+      <h3>Datos personales</h3>
+      <div id="profileSaveMsg" style="display:none;background:#e8f5e9;border-left:3px solid #4caf50;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#2e7d32;">✓ Datos actualizados correctamente</div>
+      <div id="profileSaveErr" style="display:none;background:#fde8e8;border-left:3px solid #e07070;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#a03030;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="profile-field">
+          <label>Nombre</label>
+          <input type="text" id="pfFirstName" placeholder="Tu nombre">
+        </div>
+        <div class="profile-field">
+          <label>Apellido</label>
+          <input type="text" id="pfLastName" placeholder="Tu apellido">
+        </div>
+      </div>
+      <div class="profile-field">
+        <label>Email</label>
+        <input type="email" id="pfEmail" placeholder="tu@email.com">
+      </div>
+      <div class="profile-field" style="color:var(--gray);font-size:12px;margin-bottom:20px;" id="pfCreatedAt"></div>
+      <button class="profile-save-btn" onclick="saveProfile()">Guardar cambios</button>
+    </div>
+
+    <!-- Change password -->
+    <div class="profile-card">
+      <h3>Cambiar contraseña</h3>
+      <div class="profile-field">
+        <label>Contraseña actual</label>
+        <input type="password" id="pfCurrentPw" placeholder="••••••••">
+      </div>
+      <div class="profile-field">
+        <label>Nueva contraseña</label>
+        <input type="password" id="pfNewPw" placeholder="Mínimo 6 caracteres">
+      </div>
+      <button class="profile-save-btn" onclick="savePassword()">Cambiar contraseña</button>
+    </div>
+
+    <!-- Danger zone -->
+    <div style="text-align:right;padding:8px 0;">
+      <button onclick="handleLogout()" style="background:none;border:none;color:#e07070;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;">Cerrar sesión →</button>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-inner">
     <div class="footer-grid">
       <div class="footer-brand">
-        <a class="logo" onclick="showPage('home')">FO<span>K</span>WARD</a>
+        <a class="logo" onclick="showPage('home')" style="display:flex;align-items:center;gap:10px;">
+        <img src="https://i.ibb.co/W4tKCNFm/logo.png" alt="FOKWARD" style="height:44px;width:auto;object-fit:contain;">
+      </a>
         <p>Ropa urbana con identidad propia. Dos líneas, una sola visión: FOKWARD.STW y FOKWARD.SBL.</p>
       </div>
       <div class="footer-col">
@@ -1069,89 +1383,100 @@
 
 <script>
 // ============================================================
-// PRODUCTS DATABASE — Editá esto para agregar/modificar
+// PRODUCTS DATABASE
 // ============================================================
 const products = [
   {
     id: 1, name: 'Buzo FVCK LOVE', line: 'stw', category: 'buzos',
     price: 48000, oldPrice: 50000,
-    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Marrón', hex:'#5c3820'},{name:'Negro', hex:'#1a1a1a'}],
-    sizes: ['S','M','L','XL','XXL'],
-    featured: true,
-    desc: 'Buzo con estampado "FVCK LOVE" en tipografía exclusiva. Tela de alta calidad, interior plush.',
-    image: null
+    colors: [
+      {name:'Blanco', hex:'#f0ece5', images:['https://i.ibb.co/LDd7NZvm/Buzo-blanco-delante-gengar.png','https://i.ibb.co/7JjF1Gf6/Buzo-blanco-atras-gengar.png']},
+      {name:'Marrón', hex:'#5c3820', images:['https://i.ibb.co/sdGznLGs/Buzo-marron-delante-gengar.png','https://i.ibb.co/4nmvx78k/Buzo-marron-atras-gengar.png']},
+      {name:'Negro',  hex:'#1a1a1a', images:['https://i.ibb.co/Ng8g0YpY/Buzo-negro-delante-gengar.png','https://i.ibb.co/NnL12y7x/Buzo-negro-atras-gengar.png']}
+    ],
+    sizes: ['S','M','L','XL','XXL'], featured: true,
+    desc: 'Buzo con estampado exclusivo. Tela de alta calidad, interior plush.',
+    image: 'https://i.ibb.co/LDd7NZvm/Buzo-blanco-delante-gengar.png',
+    images: ['https://i.ibb.co/LDd7NZvm/Buzo-blanco-delante-gengar.png','https://i.ibb.co/7JjF1Gf6/Buzo-blanco-atras-gengar.png','https://i.ibb.co/sdGznLGs/Buzo-marron-delante-gengar.png','https://i.ibb.co/4nmvx78k/Buzo-marron-atras-gengar.png','https://i.ibb.co/Ng8g0YpY/Buzo-negro-delante-gengar.png','https://i.ibb.co/NnL12y7x/Buzo-negro-atras-gengar.png']
   },
   {
     id: 2, name: 'Buzo CANSERBERO', line: 'stw', category: 'buzos',
     price: 48000, oldPrice: 50000,
-    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Negro', hex:'#1a1a1a'}],
-    sizes: ['S','M','L','XL','XXL'],
-    featured: true,
+    colors: [
+      {name:'Blanco', hex:'#f0ece5', images:['https://i.ibb.co/27DDbvVg/can-B1.webp','https://i.ibb.co/HTvVWcZX/Canb2.webp']},
+      {name:'Negro',  hex:'#1a1a1a', images:['https://i.ibb.co/Hp1vQLPV/Can1.webp','https://i.ibb.co/yBQjxScT/can2.webp']}
+    ],
+    sizes: ['S','M','L','XL','XXL'], featured: true,
     desc: 'Homenaje al legendario. Buzo con arte exclusivo inspirado en Canserbero.',
-    image: null
+    image: 'https://i.ibb.co/27DDbvVg/can-B1.webp',
+    images: ['https://i.ibb.co/27DDbvVg/can-B1.webp','https://i.ibb.co/HTvVWcZX/Canb2.webp','https://i.ibb.co/Hp1vQLPV/Can1.webp','https://i.ibb.co/yBQjxScT/can2.webp']
   },
   {
     id: 3, name: 'Remera YSY A', line: 'stw', category: 'remeras',
     price: 28000, oldPrice: 30000,
-    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Negro', hex:'#1a1a1a'}],
-    sizes: ['S','M','L','XL','XXL'],
-    featured: true,
+    colors: [
+      {name:'Blanco', hex:'#f0ece5', images:['https://i.ibb.co/N2rWhJqf/mockup-remera-blanca-ysy.png']},
+      {name:'Negro',  hex:'#1a1a1a', images:['https://i.ibb.co/LXFb6YyD/mockup-remera-negra-ysy.png']}
+    ],
+    sizes: ['S','M','L','XL','XXL'], featured: true,
     desc: 'Remera de algodón pesado con estampado artístico. Corte oversize.',
-    image: null
+    image: 'https://i.ibb.co/N2rWhJqf/mockup-remera-blanca-ysy.png',
+    images: ['https://i.ibb.co/N2rWhJqf/mockup-remera-blanca-ysy.png','https://i.ibb.co/LXFb6YyD/mockup-remera-negra-ysy.png']
   },
   {
     id: 4, name: 'Remera personalizada', line: 'sbl', category: 'remeras',
     price: 26000, oldPrice: null,
-    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Negro', hex:'#1a1a1a'}],
-    sizes: ['S','M','L','XL','XXL'],
-    featured: false,
-    desc: 'Remera 100% personalizada con tu diseño. Consultanos por WhatsApp antes de comprar.',
-    image: null
+    colors: [], sizes: ['S','M','L','XL','XXL'], featured: true,
+    desc: 'Remera 100% personalizada con tu diseño. Mandanos tu diseño a nuestro WhatsApp antes de realizar la compra.',
+    image: 'https://i.ibb.co/VW6WLnKt/1.png',
+    images: ['https://i.ibb.co/VW6WLnKt/1.png','https://i.ibb.co/ZzkLRj2M/2.png','https://i.ibb.co/sT0GYw3/3.png','https://i.ibb.co/0jmvnWFQ/4.png','https://i.ibb.co/k2JKLGfd/5.png','https://i.ibb.co/XfdxWJKc/A1.png','https://i.ibb.co/4CBBgXL/A2.png','https://i.ibb.co/h1w1GjFb/A3.png','https://i.ibb.co/TMWzr9hV/A4.png','https://i.ibb.co/vCvrTQRg/A5.png']
   },
   {
-    id: 5, name: 'Calcomanías holográficas', line: 'sbl', category: 'accesorios',
+    id: 5, name: 'Stickers holográficos', line: 'sbl', category: 'accesorios',
     price: 450, oldPrice: 500,
-    colors: [],
-    sizes: [],
-    featured: true,
-    desc: 'Pack de calcomanías holográficas FOKWARD.SBL. Efecto espejo iridiscente.',
-    image: null
+    colors: [], sizes: [], featured: true,
+    desc: 'Pack de stickers holográficos FOKWARD.SBL. Mandanos tu diseño a nuestro WhatsApp antes de realizar la compra.',
+    image: 'https://i.ibb.co/RkDtNcxp/C10.png',
+    images: ['https://i.ibb.co/RkDtNcxp/C10.png','https://i.ibb.co/rKVCqyQw/C9.png','https://i.ibb.co/k21tSSMG/C8.png','https://i.ibb.co/5WKg9wHG/C7.png','https://i.ibb.co/LznSHcPn/C6.png','https://i.ibb.co/6RDw4DBQ/C5.png','https://i.ibb.co/gLNQvgwN/C4.png','https://i.ibb.co/Gv67t2fT/C3.png','https://i.ibb.co/1G6zxwhB/C2.png','https://i.ibb.co/S4LCsTwm/C1.png','https://i.ibb.co/LhYBwY1L/C01.png']
   },
   {
     id: 6, name: 'Buzo personalizado', line: 'sbl', category: 'buzos',
     price: 46000, oldPrice: null,
-    colors: [{name:'Blanco', hex:'#f0ece5'},{name:'Negro', hex:'#1a1a1a'}],
-    sizes: ['S','M','L','XL','XXL'],
-    featured: false,
-    desc: 'Buzo 100% a tu medida. Traé tu diseño y lo hacemos realidad.',
-    image: null
+    colors: [], sizes: ['S','M','L','XL','XXL'], featured: true,
+    desc: 'Buzo 100% a tu medida. Mandanos tu diseño a nuestro WhatsApp antes de realizar la compra.',
+    image: 'https://i.ibb.co/7dsWPzHj/B1.png',
+    images: ['https://i.ibb.co/7dsWPzHj/B1.png','https://i.ibb.co/M515ffNm/B2.png','https://i.ibb.co/rf0VYz2d/B3.png','https://i.ibb.co/8g9rxqDQ/B11.png','https://i.ibb.co/qLDxvtnc/B12.png','https://i.ibb.co/LzX4trX3/B22.png','https://i.ibb.co/whSVgWf8/B23.png']
   },
   {
-    id: 7, name: 'Parche personalizado', line: 'sbl', category: 'accesorios',
+    id: 7, name: 'Insignias scout', line: 'sbl', category: 'accesorios',
     price: 450, oldPrice: 750,
-    colors: [],
-    sizes: [],
+    colors: [], sizes: [],
+    variants: [
+      {name:'Manada',     image:'https://i.ibb.co/tP2RWV97/I1.png'},
+      {name:'Unidad',     image:'https://i.ibb.co/v4Py8T4P/I2.png'},
+      {name:'Caminantes', image:'https://i.ibb.co/0p7zGw2h/I3.png'},
+      {name:'Rover',      image:'https://i.ibb.co/23bWvrsR/I4.png'},
+    ],
     featured: true,
-    desc: 'Parches bordados o sublimados personalizados. Ideales para ropa y accesorios.',
-    image: null
+    desc: 'Insignias bordadas FOKWARD.SBL. Mandanos tu diseño a nuestro WhatsApp antes de realizar la compra.',
+    image: 'https://i.ibb.co/tP2RWV97/I1.png',
+    images: ['https://i.ibb.co/tP2RWV97/I1.png','https://i.ibb.co/v4Py8T4P/I2.png','https://i.ibb.co/0p7zGw2h/I3.png','https://i.ibb.co/23bWvrsR/I4.png']
   },
   {
     id: 8, name: 'Campera personalizada', line: 'sbl', category: 'buzos',
     price: 50000, oldPrice: null,
-    colors: [{name:'Negro', hex:'#1a1a1a'},{name:'Marrón', hex:'#5c3820'}],
-    sizes: ['S','M','L','XL','XXL'],
-    featured: false,
-    desc: 'Campera personalizada con tu diseño. Calidad premium.',
-    image: null
+    colors: [], sizes: ['S','M','L','XL','XXL'], featured: false,
+    desc: 'Campera personalizada con tu diseño. Mandanos tu diseño a nuestro WhatsApp antes de realizar la compra.',
+    image: 'https://i.ibb.co/vC8djdLv/C1.png',
+    images: ['https://i.ibb.co/vC8djdLv/C1.png','https://i.ibb.co/p60QDJC8/C2.png','https://i.ibb.co/8g9rxqDQ/B11.png','https://i.ibb.co/qLDxvtnc/B12.png','https://i.ibb.co/LzX4trX3/B22.png','https://i.ibb.co/whSVgWf8/B23.png']
   },
   {
     id: 9, name: 'Buzo Scout', line: 'sbl', category: 'buzos',
     price: 46000, oldPrice: null,
-    colors: [{name:'Verde', hex:'#3a5a40'},{name:'Negro', hex:'#1a1a1a'}],
-    sizes: ['S','M','L','XL','XXL'],
-    featured: false,
+    colors: [], sizes: ['S','M','L','XL','XXL'], featured: true,
     desc: 'Buzo estilo Scout con detalles artesanales y parches incluidos.',
-    image: null
+    image: 'https://i.ibb.co/rKgbvyxm/buzoscout.webp',
+    images: ['https://i.ibb.co/rKgbvyxm/buzoscout.webp','https://i.ibb.co/YFwL4WtK/buzoscout2.webp']
   },
 ];
 
@@ -1268,6 +1593,10 @@ function filterProducts(cat, btn) {
 // ============================================================
 // PRODUCT DETAIL
 // ============================================================
+// ── Gallery state ──────────────────────────────────────────────
+let galleryImgs = [];
+let galleryIdx  = 0;
+
 function showProduct(id) {
   currentProduct = products.find(p => p.id === id);
   if (!currentProduct) return;
@@ -1276,9 +1605,31 @@ function showProduct(id) {
   const p = currentProduct;
   const discount = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
 
+  // Determine initial image set
+  let initImgs = [];
+  if (p.colors && p.colors.length && p.colors[0].images) {
+    initImgs = p.colors[0].images;
+  } else if (p.variants && p.variants.length) {
+    initImgs = p.variants.map(v => v.image);
+  } else if (p.images && p.images.length) {
+    initImgs = p.images;
+  } else if (p.image) {
+    initImgs = [p.image];
+  }
+  galleryImgs = initImgs;
+  galleryIdx  = 0;
+
   document.getElementById('productDetailContent').innerHTML = `
-    <div class="detail-img">
-      ${p.image ? `<img src="${p.image}" alt="${p.name}">` : p.name.substring(0,3).toUpperCase()}
+    <div class="gallery-outer">
+      <div class="gallery-thumbs" id="galleryThumbs"></div>
+      <div class="gallery-main">
+        <div class="carousel-wrap">
+          <button class="carousel-arrow prev" onclick="carouselMove(-1)">&#8249;</button>
+          <img id="carouselImg" src="" alt="${p.name}">
+          <button class="carousel-arrow next" onclick="carouselMove(1)">&#8250;</button>
+        </div>
+        <div class="carousel-dots" id="carouselDots"></div>
+      </div>
     </div>
     <div class="detail-info">
       <div class="detail-brand">FOKWARD.${p.line.toUpperCase()} · ${p.category}</div>
@@ -1290,20 +1641,29 @@ function showProduct(id) {
       </div>
       <p style="color:var(--gray); line-height:1.7; margin-bottom:24px;">${p.desc}</p>
 
-      ${p.colors.length > 0 ? `
+      ${p.colors && p.colors.length > 0 ? `
         <div class="selector-label">Color: <span id="selectedColor">${p.colors[0].name}</span></div>
         <div class="color-options">
           ${p.colors.map((c,i) => `
-            <div class="color-btn ${i===0?'active':''}" 
+            <div class="color-btn ${i===0?'active':''}"
               style="background:${c.hex}; border-color:${i===0?'var(--orange)':'transparent'};"
-              onclick="selectColor(this, '${c.name}')" 
+              onclick="selectColor(this, '${c.name}', ${i})"
               title="${c.name}">
             </div>
           `).join('')}
         </div>
       ` : ''}
 
-      ${p.sizes.length > 0 ? `
+      ${p.variants && p.variants.length > 0 ? `
+        <div class="selector-label">Tipo: <span id="selectedVariant">${p.variants[0].name}</span></div>
+        <div class="size-options">
+          ${p.variants.map((v,i) => `
+            <button class="size-btn ${i===0?'active':''}" onclick="selectVariant(this,'${v.name}',${i})">${v.name}</button>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${p.sizes && p.sizes.length > 0 ? `
         <div class="selector-label">Talle: <span id="selectedSize">${p.sizes[0]}</span></div>
         <div class="size-options">
           ${p.sizes.map((s,i) => `
@@ -1321,14 +1681,65 @@ function showProduct(id) {
       </div>
     </div>
   `;
+
+  renderGallery(initImgs, 0);
   showPage('product');
 }
 
-function selectColor(el, name) {
+// Render thumbs, carousel image and dots
+function renderGallery(imgs, idx) {
+  galleryImgs = imgs;
+  galleryIdx  = idx;
+
+  // Main image
+  const mainImg = document.getElementById('carouselImg');
+  if (mainImg && imgs.length) mainImg.src = imgs[idx];
+
+  // Thumbs
+  const thumbsEl = document.getElementById('galleryThumbs');
+  if (thumbsEl) {
+    thumbsEl.innerHTML = imgs.map((src, i) =>
+      `<div class="gallery-thumb ${i===idx?'gactive':''}" onclick="carouselGoto(${i})">
+         <img src="${src}" alt="foto ${i+1}">
+       </div>`
+    ).join('');
+  }
+
+  // Dots
+  const dotsEl = document.getElementById('carouselDots');
+  if (dotsEl) {
+    dotsEl.innerHTML = imgs.length > 1
+      ? imgs.map((_,i) => `<button class="carousel-dot ${i===idx?'dactive':''}" onclick="carouselGoto(${i})"></button>`).join('')
+      : '';
+  }
+}
+
+function carouselGoto(idx) {
+  renderGallery(galleryImgs, idx);
+}
+
+function carouselMove(dir) {
+  const next = (galleryIdx + dir + galleryImgs.length) % galleryImgs.length;
+  renderGallery(galleryImgs, next);
+}
+
+function selectColor(el, name, colorIdx) {
   document.querySelectorAll('.color-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor = 'transparent'; });
   el.classList.add('active');
   el.style.borderColor = 'var(--orange)';
   document.getElementById('selectedColor').textContent = name;
+  const p = currentProduct;
+  const imgs = (p.colors[colorIdx] && p.colors[colorIdx].images) ? p.colors[colorIdx].images : (p.images || [p.image]);
+  renderGallery(imgs, 0);
+}
+
+function selectVariant(el, name, varIdx) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('selectedVariant').textContent = name;
+  const p = currentProduct;
+  const img = p.variants[varIdx].image;
+  renderGallery([img], 0);
 }
 
 function selectSize(el, size) {
@@ -1549,6 +1960,8 @@ async function processPurchase() {
   }
 }
 
+// Gallery handled by renderGallery()
+
 // ============================================================
 // INIT
 // ============================================================
@@ -1564,11 +1977,243 @@ window.addEventListener('load', () => {
   renderFeatured();
   renderCatalog(products);
   updateCartUI();
+  loadAuthState();
+
+  // Enter key on login/register forms
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const modal = document.getElementById('authModal');
+      if (modal && modal.classList.contains('open')) {
+        if (document.getElementById('loginForm').style.display !== 'none') handleLogin();
+        else handleRegister();
+      }
+    }
+  });
 
   setTimeout(() => {
     document.getElementById('loadingOverlay').classList.add('hidden');
   }, 1400);
 });
+
+// ============================================================
+// AUTH STATE
+// ============================================================
+let currentUser = null;
+
+function loadAuthState() {
+  const token = localStorage.getItem('fw_token');
+  const user  = localStorage.getItem('fw_user');
+  if (token && user) {
+    currentUser = JSON.parse(user);
+    renderProfileDropdown();
+  } else {
+    renderProfileDropdown();
+  }
+}
+
+function renderProfileDropdown() {
+  const avatar  = document.getElementById('profileAvatar');
+  const content = document.getElementById('profileDropdownContent');
+  if (!avatar || !content) return;
+
+  if (currentUser) {
+    const initials = (currentUser.firstName[0] + currentUser.lastName[0]).toUpperCase();
+    avatar.textContent = initials;
+    avatar.style.background = 'var(--orange)';
+    content.innerHTML = `
+      <div class="profile-dropdown-header">
+        <strong>${currentUser.firstName} ${currentUser.lastName}</strong>
+        ${currentUser.email}
+      </div>
+      <button class="dropdown-item" onclick="closeProfileDropdown(); loadProfilePage();">
+        👤 Mi perfil
+      </button>
+      <button class="dropdown-item" onclick="closeProfileDropdown(); openCart();">
+        🛒 Mi carrito
+      </button>
+      <button class="dropdown-item danger" onclick="handleLogout()">
+        ↩ Cerrar sesión
+      </button>
+    `;
+  } else {
+    avatar.textContent = '👤';
+    avatar.style.background = 'var(--brown-accent)';
+    content.innerHTML = `
+      <button class="dropdown-item" onclick="closeProfileDropdown(); openAuthModal('login');">
+        🔑 Iniciar sesión
+      </button>
+      <button class="dropdown-item" onclick="closeProfileDropdown(); openAuthModal('register');">
+        ✨ Crear cuenta
+      </button>
+    `;
+  }
+}
+
+function toggleProfileDropdown() {
+  const dd = document.getElementById('profileDropdown');
+  dd.classList.toggle('open');
+}
+
+function closeProfileDropdown() {
+  document.getElementById('profileDropdown').classList.remove('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const btn = document.getElementById('profileBtn');
+  const dd  = document.getElementById('profileDropdown');
+  if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.classList.remove('open');
+  }
+});
+
+// ── AUTH MODAL ───────────────────────────────────────────────
+function openAuthModal(tab = 'login') {
+  document.getElementById('authModal').classList.add('open');
+  switchAuthTab(tab);
+  clearAuthError();
+}
+
+function closeAuthModal() {
+  document.getElementById('authModal').classList.remove('open');
+  clearAuthError();
+}
+
+function handleModalOverlayClick(e) {
+  if (e.target === document.getElementById('authModal')) closeAuthModal();
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('loginForm').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tabLogin').classList.toggle('active',    tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  clearAuthError();
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function clearAuthError() {
+  const el = document.getElementById('authError');
+  if (el) { el.textContent = ''; el.classList.remove('show'); }
+}
+
+async function handleLogin() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) return showAuthError('Completá todos los campos');
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Ingresando...';
+  try {
+    const res  = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email, password }) });
+    const data = await res.json();
+    if (!res.ok) { showAuthError(data.error || 'Error al iniciar sesión'); return; }
+    localStorage.setItem('fw_token', data.token);
+    localStorage.setItem('fw_user',  JSON.stringify(data.user));
+    currentUser = data.user;
+    closeAuthModal();
+    renderProfileDropdown();
+    showToast(`✓ ¡Bienvenido/a, ${data.user.firstName}!`);
+  } catch { showAuthError('Error de conexión. Intentá de nuevo.'); }
+  finally { btn.disabled = false; btn.textContent = 'Iniciar sesión'; }
+}
+
+async function handleRegister() {
+  const firstName = document.getElementById('regFirstName').value.trim();
+  const lastName  = document.getElementById('regLastName').value.trim();
+  const email     = document.getElementById('regEmail').value.trim();
+  const password  = document.getElementById('regPassword').value;
+  if (!firstName || !lastName || !email || !password) return showAuthError('Completá todos los campos');
+  const btn = document.getElementById('registerBtn');
+  btn.disabled = true; btn.textContent = 'Creando cuenta...';
+  try {
+    const res  = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ firstName, lastName, email, password }) });
+    const data = await res.json();
+    if (!res.ok) { showAuthError(data.error || 'Error al registrar'); return; }
+    localStorage.setItem('fw_token', data.token);
+    localStorage.setItem('fw_user',  JSON.stringify(data.user));
+    currentUser = data.user;
+    closeAuthModal();
+    renderProfileDropdown();
+    showToast(`✓ ¡Cuenta creada! Bienvenido/a, ${data.user.firstName}!`);
+  } catch { showAuthError('Error de conexión. Intentá de nuevo.'); }
+  finally { btn.disabled = false; btn.textContent = 'Crear cuenta'; }
+}
+
+function handleLogout() {
+  localStorage.removeItem('fw_token');
+  localStorage.removeItem('fw_user');
+  currentUser = null;
+  closeProfileDropdown();
+  renderProfileDropdown();
+  showToast('Sesión cerrada');
+  showPage('home');
+}
+
+// ── PROFILE PAGE ─────────────────────────────────────────────
+async function loadProfilePage() {
+  if (!currentUser) { openAuthModal('login'); return; }
+  showPage('profile');
+  const token = localStorage.getItem('fw_token');
+  try {
+    const res  = await fetch('/api/auth/profile', { headers:{ 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    if (!res.ok) { handleLogout(); return; }
+    const u = data.user;
+    document.getElementById('pfFirstName').value = u.firstName;
+    document.getElementById('pfLastName').value  = u.lastName;
+    document.getElementById('pfEmail').value     = u.email;
+    document.getElementById('pfCreatedAt').textContent = `Miembro desde: ${new Date(u.createdAt).toLocaleDateString('es-AR', { year:'numeric', month:'long', day:'numeric' })}`;
+    document.getElementById('profileSubtitle').textContent = `${u.firstName} ${u.lastName}`;
+  } catch { showToast('Error al cargar el perfil'); }
+}
+
+async function saveProfile() {
+  const token     = localStorage.getItem('fw_token');
+  const firstName = document.getElementById('pfFirstName').value.trim();
+  const lastName  = document.getElementById('pfLastName').value.trim();
+  const email     = document.getElementById('pfEmail').value.trim();
+  const msgEl = document.getElementById('profileSaveMsg');
+  const errEl = document.getElementById('profileSaveErr');
+  msgEl.style.display = 'none'; errEl.style.display = 'none';
+  try {
+    const res  = await fetch('/api/auth/profile', { method:'PUT', headers:{ 'Content-Type':'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ firstName, lastName, email }) });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+    localStorage.setItem('fw_token', data.token);
+    localStorage.setItem('fw_user',  JSON.stringify(data.user));
+    currentUser = data.user;
+    renderProfileDropdown();
+    msgEl.style.display = 'block';
+    setTimeout(() => msgEl.style.display = 'none', 3000);
+  } catch { errEl.textContent = 'Error de conexión'; errEl.style.display = 'block'; }
+}
+
+async function savePassword() {
+  const token       = localStorage.getItem('fw_token');
+  const currentPassword = document.getElementById('pfCurrentPw').value;
+  const newPassword     = document.getElementById('pfNewPw').value;
+  const errEl = document.getElementById('profileSaveErr');
+  const msgEl = document.getElementById('profileSaveMsg');
+  errEl.style.display = 'none'; msgEl.style.display = 'none';
+  if (!currentPassword || !newPassword) { errEl.textContent = 'Completá ambos campos de contraseña'; errEl.style.display = 'block'; return; }
+  try {
+    const res  = await fetch('/api/auth/profile', { method:'PUT', headers:{ 'Content-Type':'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ currentPassword, newPassword }) });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+    localStorage.setItem('fw_token', data.token);
+    document.getElementById('pfCurrentPw').value = '';
+    document.getElementById('pfNewPw').value = '';
+    msgEl.textContent = '✓ Contraseña actualizada correctamente';
+    msgEl.style.display = 'block';
+    setTimeout(() => msgEl.style.display = 'none', 3000);
+  } catch { errEl.textContent = 'Error de conexión'; errEl.style.display = 'block'; }
+}
+
 </script>
 </body>
 </html>
