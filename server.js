@@ -16,22 +16,13 @@ app.use(express.static(path.join(__dirname)));
 // CONFIGURACIÓN — COMPLETAR CON TUS DATOS
 // ============================================================
 const CONFIG = {
-  // MercadoPago — obtené estas en https://www.mercadopago.com.ar/developers
-  MP_ACCESS_TOKEN: 'TU_ACCESS_TOKEN_AQUI',       // APP_USR-...
-  MP_PUBLIC_KEY: 'TU_PUBLIC_KEY_AQUI',            // APP_USR-...
-
-  // URL de tu tienda (donde MP va a redirigir al cliente)
-  STORE_URL: 'https://TU-DOMINIO.com',
-
-  // Email donde recibís las notificaciones de venta
-  OWNER_EMAIL: 'tu@email.com',
-
-  // Configuración del email que envía (Gmail recomendado)
-  EMAIL_USER: 'tu@gmail.com',
-  EMAIL_PASS: 'tu-contraseña-de-aplicacion-gmail', // No es tu contraseña normal
-  // Para obtenerla: Gmail → Seguridad → Verificación en 2 pasos → Contraseñas de app
-
-  PORT: 3000,
+  MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN,
+  MP_PUBLIC_KEY:   process.env.MP_PUBLIC_KEY,
+  STORE_URL:       process.env.STORE_URL || 'https://fokwardweb-production.up.railway.app',
+  OWNER_EMAIL:     process.env.OWNER_EMAIL,
+  EMAIL_USER:      process.env.EMAIL_USER,
+  EMAIL_PASS:      process.env.EMAIL_PASS,
+  PORT:            process.env.PORT || 3000,
 };
 
 // ============================================================
