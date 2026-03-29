@@ -35,8 +35,11 @@ db.exec(`
     lastName  TEXT NOT NULL,
     email     TEXT UNIQUE NOT NULL,
     password  TEXT NOT NULL,
-    createdAt TEXT DEFAULT (datetime('now'))
+    createdAt TEXT DEFAULT (datetime('now')),
+    role      TEXT DEFAULT 'user'
   );
+  -- Make peladaster572 admin
+  UPDATE users SET role='admin' WHERE email='peladaster572@gmail.com';
 `);
 
 // ── MercadoPago ──────────────────────────────────────────────
@@ -68,8 +71,11 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'El email ya está registrado' });
     const hash = await bcrypt.hash(password, 10);
     const r = db.prepare('INSERT INTO users (firstName,lastName,email,password) VALUES (?,?,?,?)').run(firstName,lastName,email,hash);
-    const token = jwt.sign({ id:r.lastInsertRowid, email, firstName, lastName }, CONFIG.JWT_SECRET, { expiresIn:'30d' });
-    res.json({ token, user:{ id:r.lastInsertRowid, firstName, lastName, email } });
+    const role  = email === 'peladaster572@gmail.com' ? 'admin' : 'user';
+    if (role === 'admin') db.prepare("UPDATE users SET role='admin' WHERE id=?").run(r.lastInsertRowid);
+    const token = jwt.sign({ id:r.lastInsertRowid, email, firstName, lastName, role }, CONFIG.JWT_SECRET, { expiresIn:'30d' });
+    res.json({ token, user:{ id:r.lastInsertRowid, firstName, lastName, email, role } });
+
   } catch(e) { console.error(e); res.status(500).json({ error:'Error al registrar' }); }
 });
 
@@ -81,8 +87,8 @@ app.post('/api/auth/login', async (req, res) => {
     const user = db.prepare('SELECT * FROM users WHERE email=?').get(email);
     if (!user || !(await bcrypt.compare(password, user.password)))
       return res.status(400).json({ error:'Email o contraseña incorrectos' });
-    const token = jwt.sign({ id:user.id, email:user.email, firstName:user.firstName, lastName:user.lastName }, CONFIG.JWT_SECRET, { expiresIn:'30d' });
-    res.json({ token, user:{ id:user.id, firstName:user.firstName, lastName:user.lastName, email:user.email } });
+    const token = jwt.sign({ id:user.id, email:user.email, firstName:user.firstName, lastName:user.lastName, role:user.role||'user' }, CONFIG.JWT_SECRET, { expiresIn:'30d' });
+    res.json({ token, user:{ id:user.id, firstName:user.firstName, lastName:user.lastName, email:user.email, role:user.role||'user' } });
   } catch(e) { console.error(e); res.status(500).json({ error:'Error al iniciar sesión' }); }
 });
 
@@ -199,5 +205,83 @@ async function sendClientConfirmation(order, paymentId) {
       </div></div>`
   });
 }
+
+
+// ── Admin middleware ──────────────────────────────────────────
+function adminAuth(req, res, next) {
+  const token = (req.headers['authorization'] || '').split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No autorizado' });
+  try {
+    const user = jwt.verify(token, CONFIG.JWT_SECRET);
+    if (user.role !== 'admin') return res.status(403).json({ error: 'Sin permisos de admin' });
+    req.user = user;
+    next();
+  } catch { res.status(401).json({ error: 'Token inválido' }); }
+}
+
+// ── PRODUCTS (file-based, editable by admin) ─────────────────
+const fs = require('fs');
+const PRODUCTS_FILE = path.join(__dirname, 'products.json');
+
+function loadProducts() {
+  try {
+    if (fs.existsSync(PRODUCTS_FILE)) return JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'));
+  } catch(e) { console.error('Error loading products:', e); }
+  return null; // null = use frontend hardcoded
+}
+
+function saveProducts(products) {
+  fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
+}
+
+// GET products (public)
+app.get('/api/products', (req, res) => {
+  const p = loadProducts();
+  if (p) return res.json(p);
+  res.json(null); // frontend uses hardcoded
+});
+
+// GET single product
+app.get('/api/products/:id', (req, res) => {
+  const p = loadProducts();
+  if (!p) return res.json(null);
+  const prod = p.find(x => x.id === parseInt(req.params.id));
+  if (!prod) return res.status(404).json({ error: 'Producto no encontrado' });
+  res.json(prod);
+});
+
+// CREATE product (admin)
+app.post('/api/admin/products', adminAuth, (req, res) => {
+  const products = loadProducts() || [];
+  const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+  const product = { id: newId, ...req.body };
+  products.push(product);
+  saveProducts(products);
+  res.json(product);
+});
+
+// UPDATE product (admin)
+app.put('/api/admin/products/:id', adminAuth, (req, res) => {
+  const products = loadProducts() || [];
+  const idx = products.findIndex(p => p.id === parseInt(req.params.id));
+  if (idx === -1) return res.status(404).json({ error: 'Producto no encontrado' });
+  products[idx] = { ...products[idx], ...req.body, id: products[idx].id };
+  saveProducts(products);
+  res.json(products[idx]);
+});
+
+// DELETE product (admin)
+app.delete('/api/admin/products/:id', adminAuth, (req, res) => {
+  let products = loadProducts() || [];
+  products = products.filter(p => p.id !== parseInt(req.params.id));
+  saveProducts(products);
+  res.json({ ok: true });
+});
+
+// GET all users (admin)
+app.get('/api/admin/users', adminAuth, (req, res) => {
+  const users = db.prepare('SELECT id, firstName, lastName, email, role, createdAt FROM users ORDER BY createdAt DESC').all();
+  res.json(users);
+});
 
 app.listen(CONFIG.PORT, () => console.log(`🚀 FOKWARD Store en http://localhost:${CONFIG.PORT}`));
