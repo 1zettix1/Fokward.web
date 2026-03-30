@@ -38,9 +38,52 @@ db.exec(`
     createdAt TEXT DEFAULT (datetime('now')),
     role      TEXT DEFAULT 'user'
   );
-  -- Make peladaster572 admin
   UPDATE users SET role='admin' WHERE email='peladaster572@gmail.com';
+
+  CREATE TABLE IF NOT EXISTS products (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    data      TEXT NOT NULL,
+    updatedAt TEXT DEFAULT (datetime('now'))
+  );
 `);
+
+// ── Product helpers ───────────────────────────────────────────
+function dbGetProducts() {
+  const rows = db.prepare('SELECT id, data FROM products ORDER BY id ASC').all();
+  return rows.map(r => ({ id: r.id, ...JSON.parse(r.data) }));
+}
+
+function dbSaveProduct(data) {
+  const { id, ...rest } = data;
+  if (id) {
+    db.prepare('UPDATE products SET data=?, updatedAt=datetime(\'now\') WHERE id=?')
+      .run(JSON.stringify(rest), id);
+    return { id, ...rest };
+  } else {
+    const r = db.prepare('INSERT INTO products (data) VALUES (?)').run(JSON.stringify(rest));
+    return { id: r.lastInsertRowid, ...rest };
+  }
+}
+
+function dbDeleteProduct(id) {
+  db.prepare('DELETE FROM products WHERE id=?').run(id);
+}
+
+function dbInitProducts(defaultProducts) {
+  const count = db.prepare('SELECT COUNT(*) as c FROM products').get().c;
+  if (count === 0) {
+    // Seed with default products from frontend
+    const insert = db.prepare('INSERT INTO products (id, data) VALUES (?, ?)');
+    const insertMany = db.transaction((prods) => {
+      for (const p of prods) {
+        const { id, ...rest } = p;
+        insert.run(id, JSON.stringify(rest));
+      }
+    });
+    insertMany(defaultProducts);
+    console.log('✅ Productos inicializados en DB:', defaultProducts.length);
+  }
+}
 
 // ── MercadoPago ──────────────────────────────────────────────
 const mp = new MercadoPagoConfig({ accessToken: CONFIG.MP_ACCESS_TOKEN });
@@ -219,63 +262,45 @@ function adminAuth(req, res, next) {
   } catch { res.status(401).json({ error: 'Token inválido' }); }
 }
 
-// ── PRODUCTS (file-based, editable by admin) ─────────────────
-const fs = require('fs');
-const PRODUCTS_FILE = path.join(__dirname, 'products.json');
+// ── PRODUCTS API ─────────────────────────────────────────────
 
-function loadProducts() {
-  try {
-    if (fs.existsSync(PRODUCTS_FILE)) return JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'));
-  } catch(e) { console.error('Error loading products:', e); }
-  return null; // null = use frontend hardcoded
-}
-
-function saveProducts(products) {
-  fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
-}
-
-// GET products (public)
+// GET all products (public) — frontend loads these on start
 app.get('/api/products', (req, res) => {
-  const p = loadProducts();
-  if (p) return res.json(p);
-  res.json(null); // frontend uses hardcoded
+  try {
+    res.json(dbGetProducts());
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Error cargando productos' }); }
 });
 
-// GET single product
-app.get('/api/products/:id', (req, res) => {
-  const p = loadProducts();
-  if (!p) return res.json(null);
-  const prod = p.find(x => x.id === parseInt(req.params.id));
-  if (!prod) return res.status(404).json({ error: 'Producto no encontrado' });
-  res.json(prod);
+// INIT products from frontend defaults (called once on first load)
+app.post('/api/products/init', (req, res) => {
+  try {
+    dbInitProducts(req.body);
+    res.json({ ok: true, count: dbGetProducts().length });
+  } catch(e) { console.error(e); res.status(500).json({ error: e.message }); }
 });
 
 // CREATE product (admin)
 app.post('/api/admin/products', adminAuth, (req, res) => {
-  const products = loadProducts() || [];
-  const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-  const product = { id: newId, ...req.body };
-  products.push(product);
-  saveProducts(products);
-  res.json(product);
+  try {
+    const product = dbSaveProduct(req.body);
+    res.json(product);
+  } catch(e) { console.error(e); res.status(500).json({ error: e.message }); }
 });
 
 // UPDATE product (admin)
 app.put('/api/admin/products/:id', adminAuth, (req, res) => {
-  const products = loadProducts() || [];
-  const idx = products.findIndex(p => p.id === parseInt(req.params.id));
-  if (idx === -1) return res.status(404).json({ error: 'Producto no encontrado' });
-  products[idx] = { ...products[idx], ...req.body, id: products[idx].id };
-  saveProducts(products);
-  res.json(products[idx]);
+  try {
+    const product = dbSaveProduct({ ...req.body, id: parseInt(req.params.id) });
+    res.json(product);
+  } catch(e) { console.error(e); res.status(500).json({ error: e.message }); }
 });
 
 // DELETE product (admin)
 app.delete('/api/admin/products/:id', adminAuth, (req, res) => {
-  let products = loadProducts() || [];
-  products = products.filter(p => p.id !== parseInt(req.params.id));
-  saveProducts(products);
-  res.json({ ok: true });
+  try {
+    dbDeleteProduct(parseInt(req.params.id));
+    res.json({ ok: true });
+  } catch(e) { console.error(e); res.status(500).json({ error: e.message }); }
 });
 
 // GET all users (admin)
