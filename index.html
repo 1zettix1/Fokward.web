@@ -1105,9 +1105,13 @@
 <!-- ===== HOME PAGE ===== -->
 <div class="page active" id="page-home">
   <div class="hero" style="position:relative;overflow:hidden;">
-    <img src="https://i.ibb.co/4gfvpTqM/Property-1-Figura-loka.png" alt="" style="position:absolute;right:0;bottom:0;height:90%;opacity:0.12;pointer-events:none;object-fit:contain;">
-    <img src="https://i.ibb.co/ch5Fs8Q7/Property-1-Estella-con-sombra.png" alt="" style="position:absolute;right:30%;top:10%;height:120px;opacity:0.08;pointer-events:none;">
-    <div class="hero-inner">
+    <!-- Mascota izquierda -->
+    <img src="https://i.ibb.co/4gfvpTqM/Property-1-Figura-loka.png" alt="" style="position:absolute;left:-20px;bottom:0;height:95%;opacity:0.85;pointer-events:none;object-fit:contain;z-index:1;">
+    <!-- Mascota derecha (espejada) -->
+    <img src="https://i.ibb.co/4gfvpTqM/Property-1-Figura-loka.png" alt="" style="position:absolute;right:-20px;bottom:0;height:95%;opacity:0.85;pointer-events:none;object-fit:contain;z-index:1;transform:scaleX(-1);">
+    <!-- Estrella decorativa fondo -->
+    <img src="https://i.ibb.co/ch5Fs8Q7/Property-1-Estella-con-sombra.png" alt="" style="position:absolute;right:18%;top:5%;height:140px;opacity:0.07;pointer-events:none;z-index:0;">
+    <div class="hero-inner" style="position:relative;z-index:2;">
       <div class="hero-label">Nueva colección 2026</div>
       <img src="https://i.ibb.co/HDRXHqLJ/fokward.png" alt="FOKWARD" style="height:80px;width:auto;margin-bottom:16px;display:block;filter:brightness(0) invert(1);">
       <h1>STREETWEAR<br><em>ARGENTINO</em></h1>
@@ -2768,5 +2772,33 @@ async function loadAdminUsers() {
 }
 
 </script>
+<!-- WhatsApp floating button -->
+<a href="https://wa.me/541123989195?text=Hola,%20te%20quer%C3%ADa%20consultar%20sobre%20un%20producto"
+   target="_blank"
+   style="
+     position: fixed;
+     bottom: 28px;
+     right: 28px;
+     width: 60px;
+     height: 60px;
+     background: #25D366;
+     border-radius: 50%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+     z-index: 999;
+     text-decoration: none;
+     transition: transform 0.2s, box-shadow 0.2s;
+   "
+   onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 28px rgba(37,211,102,0.7)'"
+   onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(37,211,102,0.5)'"
+   title="Contactanos por WhatsApp"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="34" height="34" fill="white">
+    <path d="M16 0C7.163 0 0 7.163 0 16c0 2.822.736 5.468 2.027 7.774L0 32l8.454-2.01A15.93 15.93 0 0016 32c8.837 0 16-7.163 16-16S24.837 0 16 0zm0 29.333a13.27 13.27 0 01-6.756-1.843l-.484-.287-5.018 1.194 1.218-4.9-.316-.502A13.267 13.267 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.27-9.862c-.398-.199-2.354-1.162-2.72-1.295-.365-.133-.631-.199-.897.199-.266.398-1.03 1.295-1.263 1.561-.232.266-.465.299-.863.1-.398-.199-1.68-.619-3.2-1.975-1.183-1.054-1.981-2.356-2.213-2.754-.232-.398-.025-.613.174-.811.179-.178.398-.465.597-.698.199-.232.266-.398.398-.664.133-.266.067-.498-.033-.697-.1-.199-.897-2.163-1.23-2.962-.323-.778-.651-.672-.897-.685l-.764-.013c-.266 0-.698.1-.1063.498-.365.398-1.396 1.362-1.396 3.324s1.43 3.854 1.629 4.12c.199.266 2.815 4.299 6.821 6.029.953.412 1.697.658 2.277.842.957.305 1.828.262 2.516.159.767-.114 2.354-.963 2.686-1.893.332-.93.332-1.727.232-1.893-.1-.166-.365-.266-.763-.465z"/>
+  </svg>
+</a>
+
 </body>
 </html>
