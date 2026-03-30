@@ -2182,7 +2182,7 @@ async function processPurchase() {
 // ============================================================
 // INIT
 // ============================================================
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   // Check for MP return
   const params = new URLSearchParams(window.location.search);
   if (params.get('status') === 'approved') {
@@ -2191,8 +2191,6 @@ window.addEventListener('load', () => {
     showPage('success');
   }
 
-  renderFeatured();
-  renderCatalog(products);
   updateCartUI();
   loadAuthState();
 
@@ -2206,6 +2204,9 @@ window.addEventListener('load', () => {
       }
     }
   });
+
+  // Load products from server (persistent), fallback to hardcoded
+  await loadProductsFromServer();
 
   setTimeout(() => {
     document.getElementById('loadingOverlay').classList.add('hidden');
@@ -2437,6 +2438,33 @@ async function savePassword() {
 
 
 // ============================================================
+// PRODUCT SERVER SYNC
+// ============================================================
+async function loadProductsFromServer() {
+  try {
+    const res = await fetch('/api/products');
+    if (!res.ok) throw new Error('no server products');
+    const serverProducts = await res.json();
+    if (serverProducts && serverProducts.length > 0) {
+      // Replace hardcoded products with server ones
+      products.length = 0;
+      serverProducts.forEach(p => products.push(p));
+    } else {
+      // First time: seed server with hardcoded defaults
+      await fetch('/api/products/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(products)
+      });
+    }
+  } catch(e) {
+    console.warn('Using hardcoded products (server unavailable):', e.message);
+  }
+  renderFeatured();
+  renderCatalog(products);
+}
+
+// ============================================================
 // ADMIN PANEL
 // ============================================================
 let adminProducts = [];
@@ -2636,31 +2664,48 @@ async function saveProduct(cid, isNew, productId) {
     return;
   }
 
-  if (isNew) {
-    // Add to local products array
-    const newId = products.length > 0 ? Math.max(...products.map(p=>p.id)) + 1 : 1;
-    const newProduct = { id: newId, ...data };
-    products.push(newProduct);
-    adminProducts = JSON.parse(JSON.stringify(products));
-    renderFeatured();
-    renderCatalog(products);
-    renderAdminProductGrid(adminProducts);
-    loadAdminStats();
-    if (msgEl) { msgEl.textContent='✓ Producto agregado correctamente'; msgEl.style.cssText='display:block;padding:10px 14px;margin-bottom:16px;font-size:13px;border-left:3px solid #4caf50;background:#e8f5e9;color:#2e7d32;'; }
-    // Reset form
-    setTimeout(() => renderProductForm(null, 'new'), 2000);
-  } else {
-    // Update existing
-    const idx = products.findIndex(p => p.id === productId);
-    if (idx !== -1) {
-      products[idx] = { ...products[idx], ...data };
-      adminProducts = JSON.parse(JSON.stringify(products));
-      renderFeatured();
-      renderCatalog(products);
-      renderAdminProductGrid(adminProducts);
+  const token = localStorage.getItem('fw_token');
+  const saveBtn = document.querySelector(`#${isNew?'newProductForm':'editModalBody'} .edit-save-btn`);
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Guardando...'; }
+
+  try {
+    let res, saved;
+    if (isNew) {
+      res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data)
+      });
+    } else {
+      res = await fetch('/api/admin/products/' + productId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data)
+      });
     }
-    closeEditModal();
-    showToast('✓ Producto actualizado');
+    saved = await res.json();
+    if (!res.ok) throw new Error(saved.error || 'Error del servidor');
+
+    // Update local array
+    if (isNew) {
+      products.push(saved);
+      adminProducts = JSON.parse(JSON.stringify(products));
+      renderFeatured(); renderCatalog(products); renderAdminProductGrid(adminProducts); loadAdminStats();
+      if (msgEl) { msgEl.textContent='✓ Producto guardado permanentemente'; msgEl.style.cssText='display:block;padding:10px 14px;margin-bottom:16px;font-size:13px;border-left:3px solid #4caf50;background:#e8f5e9;color:#2e7d32;'; }
+      setTimeout(() => renderProductForm(null, 'new'), 2000);
+    } else {
+      const idx = products.findIndex(p => p.id === productId);
+      if (idx !== -1) products[idx] = saved;
+      adminProducts = JSON.parse(JSON.stringify(products));
+      renderFeatured(); renderCatalog(products); renderAdminProductGrid(adminProducts);
+      closeEditModal();
+      showToast('✓ Producto actualizado y guardado');
+    }
+  } catch(e) {
+    if (msgEl) { msgEl.textContent='❌ Error: ' + e.message; msgEl.style.cssText='display:block;padding:10px 14px;margin-bottom:16px;font-size:13px;border-left:3px solid #e07070;background:#fde8e8;color:#a03030;'; }
+    if (!isNew) showToast('❌ Error al guardar: ' + e.message);
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = isNew ? '➕ Agregar producto' : '💾 Guardar cambios'; }
   }
 }
 
@@ -2682,18 +2727,23 @@ function handleEditOverlayClick(e) {
   if (e.target === document.getElementById('editProductModal')) closeEditModal();
 }
 
-function confirmDeleteProduct(id) {
+async function confirmDeleteProduct(id) {
   const p = products.find(x => x.id === id);
   if (!p) return;
   if (!confirm(`¿Seguro que querés eliminar "${p.name}"?`)) return;
-  const idx = products.findIndex(x => x.id === id);
-  if (idx !== -1) products.splice(idx, 1);
-  adminProducts = JSON.parse(JSON.stringify(products));
-  renderFeatured();
-  renderCatalog(products);
-  renderAdminProductGrid(adminProducts);
-  loadAdminStats();
-  showToast('🗑 Producto eliminado');
+  const token = localStorage.getItem('fw_token');
+  try {
+    const res = await fetch('/api/admin/products/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Error al eliminar');
+    const idx = products.findIndex(x => x.id === id);
+    if (idx !== -1) products.splice(idx, 1);
+    adminProducts = JSON.parse(JSON.stringify(products));
+    renderFeatured(); renderCatalog(products); renderAdminProductGrid(adminProducts); loadAdminStats();
+    showToast('🗑 Producto eliminado permanentemente');
+  } catch(e) { showToast('❌ Error: ' + e.message); }
 }
 
 // ── USERS ─────────────────────────────────────────────────────
